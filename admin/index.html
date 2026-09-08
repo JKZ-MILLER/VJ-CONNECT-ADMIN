@@ -1,194 +1,74 @@
 <!doctype html>
-<html lang="pt-BR">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>VJ CONNECT — Demo</title>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>VJ CONNECT · Admin</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#070707;color:#eee;font-family:Arial,Helvetica,sans-serif}
-button,input{font:inherit}.top{height:64px;border-bottom:1px solid #29251f;padding:0 22px;display:flex;align-items:center;justify-content:space-between}.brand{font-weight:900;letter-spacing:.16em}.gold{color:#d8b45d}.btn{border:1px solid #3b3328;background:#151515;color:#eee;border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer}.primary{background:#d8b45d;color:#080808;border-color:#d8b45d}
-#login{max-width:430px;margin:80px auto;padding:25px}.muted{color:#999;line-height:1.55;font-size:13px}label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.13em;color:#aaa;margin:14px 0 6px}input{width:100%;background:#111;border:1px solid #383127;color:#fff;padding:11px;border-radius:9px}
-.layout{display:grid;grid-template-columns:410px 1fr;min-height:calc(100vh - 64px)}.panel{padding:22px;border-right:1px solid #29251f;overflow:auto}.section{border-top:1px solid #29251f;margin-top:18px;padding-top:17px}
-.stage{display:grid;place-items:center;padding:25px;background:radial-gradient(circle at 50% 35%,#201a10,#070707 65%)}.phone{width:360px;max-width:90vw;height:690px;border:10px solid #151515;border-radius:42px;overflow:hidden;background:#f5efe4;box-shadow:0 30px 100px #000}.screen{height:100%;overflow:auto;background:#f5efe4;color:#171717;padding:18px}.banner{height:170px;border-radius:19px;background:#171717 center/cover}.logo{display:block;width:84px;height:84px;border-radius:50%;object-fit:cover;margin:-42px auto 12px;border:3px solid #f5efe4;background:#222;position:relative}.name{text-align:center;font-size:23px;font-weight:950}.bio{text-align:center;color:#6b655c;font-size:12px;line-height:1.5;margin:7px 15px 18px}.plink{display:flex;align-items:center;justify-content:center;gap:9px;background:#151515;color:#fff;padding:14px;border-radius:14px;margin:9px 0;font-weight:850;text-decoration:none}.plink img{width:21px;height:21px}.tag{text-align:center;color:#8d877d;font-size:9px;letter-spacing:.12em;margin-top:18px}
-.linkrow{display:grid;grid-template-columns:26px 1fr 1fr 35px;gap:6px;align-items:center;background:#111;border:1px solid #29251f;padding:7px;border-radius:10px;margin-top:7px}.linkrow img{width:20px;height:20px}.small{padding:7px}.danger{background:#291313;color:#ffaaaa}
-.delete-link{width:35px;height:35px;padding:7px;display:grid;place-items:center;cursor:pointer}
-.delete-link svg{width:18px;height:18px;fill:currentColor;pointer-events:none}
-.delete-link:hover{background:#401818;transform:scale(1.04)}
-.hidden{display:none}.status{margin-top:10px;color:#bfae7e;font-size:12px;line-height:1.5}.clientbox{max-width:620px;margin:45px auto;padding:18px}.publicpage{background:#f5efe4;color:#171717;border-radius:28px;padding:18px;min-height:650px}.publicpage .banner{height:190px}.publicpage .logo{width:88px;height:88px}.publicpage .plink{margin:10px 0}
-@media(max-width:850px){.layout{grid-template-columns:1fr}.panel{border-right:0;border-bottom:1px solid #29251f}.stage{min-height:740px}}
-</style>
-</head>
-<body>
-<header class="top"><div class="brand">VJ <span class="gold">CONNECT</span></div><button id="logout" class="btn hidden" onclick="logout()">Sair</button></header>
-
-<section id="login">
-<h1>Área administrativa</h1>
-<p class="muted">Esta é uma versão de demonstração. Você não precisa instalar nada: é só abrir este arquivo e testar.</p>
-<label>E-mail</label><input id="email" placeholder="seu@email.com">
-<label>Senha</label><input id="password" type="password" placeholder="qualquer senha">
-<button class="btn primary" style="width:100%;margin-top:16px" onclick="enter()">ENTRAR</button>
-</section>
-
-<div id="admin" class="layout hidden">
-<aside class="panel">
-<h2 style="margin:0">Criar página</h2>
-<p class="muted">Você controla o template e vê o resultado ao vivo.</p>
-
-<div class="section">
-<label>Nome da empresa</label><input id="name" placeholder="Ex.: Restaurante Silva" oninput="state.name=this.value;render()">
-<label>Descrição</label><input id="bio" placeholder="Uma frase sobre a empresa" oninput="state.bio=this.value;render()">
-<label>Logo</label><input id="logoFile" type="file" accept="image/*" onchange="image(this,'logo')">
-<label>Banner</label><input id="bannerFile" type="file" accept="image/*" onchange="image(this,'banner')">
-</div>
-
-<div class="section">
-<div style="display:flex;justify-content:space-between;align-items:center"><b>Links</b><button class="btn" onclick="add()">+ Adicionar</button></div>
-<div id="links"></div>
-</div>
-
-<div class="section">
-<h3 style="margin:0 0 8px">Personalização visual</h3>
-<p class="muted">Controle as cores da página inteira e veja tudo mudar na prévia.</p>
-
-<label>Cor de fundo</label>
-<input id="bgColor" type="color" value="#f5efe4" oninput="state.bg=this.value;render()">
-
-<label>Cor dos textos</label>
-<input id="textColor" type="color" value="#171717" oninput="state.text=this.value;render()">
-
-<label>Cor dos botões</label>
-<input id="buttonColor" type="color" value="#151515" oninput="state.button=this.value;render()">
-
-<label>Cor do texto dos botões</label>
-<input id="buttonTextColor" type="color" value="#ffffff" oninput="state.buttonText=this.value;render()">
-
-<label>Cor do destaque</label>
-<input id="accent" type="color" value="#d8b45d" oninput="state.accent=this.value;render()">
-
-<label>Modo do fundo</label>
-<select id="bgMode" onchange="state.bgMode=this.value;render()" style="width:100%;background:#111;border:1px solid #383127;color:#fff;padding:11px;border-radius:9px">
-<option value="solid">Cor sólida</option>
-<option value="gradient">Degradê</option>
-</select>
-
-<label>Segunda cor do degradê</label>
-<input id="bgColor2" type="color" value="#e8dcc6" oninput="state.bg2=this.value;render()">
-
-<label>Direção do degradê</label>
-<select id="gradientDir" onchange="state.gradientDir=this.value;render()" style="width:100%;background:#111;border:1px solid #383127;color:#fff;padding:11px;border-radius:9px">
-<option value="135deg">Diagonal ↘</option>
-<option value="90deg">Vertical ↓</option>
-<option value="0deg">Horizontal →</option>
-<option value="45deg">Diagonal ↗</option>
-</select>
-
-<label>Estilo dos botões</label>
-<select id="buttonStyle" onchange="state.buttonStyle=this.value;render()" style="width:100%;background:#111;border:1px solid #383127;color:#fff;padding:11px;border-radius:9px">
-<option value="solid">Sólido</option>
-<option value="gradient">Degradê</option>
-<option value="outline">Contorno</option>
-</select>
-</div>
-
-<div class="section">
-<button class="btn primary" style="width:100%" onclick="createPage()">CRIAR PÁGINA DO CLIENTE</button>
-<button class="btn" style="width:100%;margin-top:8px" onclick="showPublic()">VER PÁGINA PÚBLICA</button>
-<div id="status" class="status"></div>
-</div>
-</aside>
-
-<main class="stage"><div class="phone"><div id="preview" class="screen"></div></div></main>
-</div>
-
-<section id="public" class="clientbox hidden">
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><b>PÁGINA PÚBLICA DO CLIENTE</b><button class="btn" onclick="backAdmin()">← Voltar ao painel</button></div>
-<div id="publicPage" class="publicpage"></div>
-<p class="muted" style="margin-top:12px">Na produção, esta área será publicada em uma URL própria do cliente, sem link de volta para o site/painel da VJ CONNECT.</p>
-</section>
-
+*{box-sizing:border-box}body{margin:0;background:#080808;color:#eee;font-family:Inter,system-ui,Arial,sans-serif}.top{height:66px;border-bottom:1px solid #29251f;display:flex;align-items:center;justify-content:space-between;padding:0 22px;position:sticky;top:0;background:#090909ee;backdrop-filter:blur(14px);z-index:10}.brand{font-weight:950;letter-spacing:.14em}.gold{color:#d8b45d}.actions{display:flex;gap:8px}.btn{border:1px solid #3a3328;background:#171717;color:#ddd;padding:10px 14px;border-radius:11px;font-weight:850;cursor:pointer}.primary{background:#d8b45d;color:#090909;border-color:#d8b45d}.layout{display:grid;grid-template-columns:420px 1fr;min-height:calc(100vh - 66px)}.panel{padding:24px;border-right:1px solid #29251f;overflow:auto}.stage{position:relative;display:grid;place-items:center;padding:30px;background:radial-gradient(circle at 50% 40%,#1b1710,#080808 65%)}h1{font-size:25px;margin:0 0 5px}.muted{color:#918b82;font-size:13px;line-height:1.5}.section{border-top:1px solid #29251f;margin-top:20px;padding-top:18px}label{display:block;text-transform:uppercase;letter-spacing:.12em;color:#aaa39a;font-size:10px;margin:12px 0 6px}input,select{width:100%;background:#121212;border:1px solid #332d24;color:#eee;padding:11px;border-radius:10px;outline:none}.links{display:grid;gap:8px}.link{display:grid;grid-template-columns:28px 1fr 1fr 34px;gap:7px;align-items:center;background:#121212;border:1px solid #29251f;padding:8px;border-radius:12px}.link img{width:21px;height:21px}.mini{padding:7px}.danger{background:#251212;color:#ffaaaa}.phone{width:360px;max-width:92vw;height:700px;border:10px solid #151515;border-radius:42px;background:#f5efe4;overflow:hidden;box-shadow:0 30px 100px #000}.screen{height:100%;overflow:auto;padding:18px;background:#f5efe4;color:#171717}.banner{height:170px;background:#171717 center/cover;border-radius:19px}.plogo{width:84px;height:84px;display:block;margin:-42px auto 12px;border-radius:50%;object-fit:cover;border:3px solid #f5efe4;background:#222;position:relative}.pname{text-align:center;font-weight:950;font-size:22px}.pbio{text-align:center;color:#6d675e;font-size:12px;margin:6px 15px 18px}.plink{display:flex;align-items:center;justify-content:center;gap:9px;background:#151515;color:#fff;padding:14px;border-radius:14px;margin:9px 0;font-weight:850}.plink img{width:21px;height:21px}.tag{font-size:9px;text-align:center;color:#999;margin-top:18px;letter-spacing:.12em}.notice{padding:11px;border:1px solid #4a3c20;background:#19150e;color:#d9caa5;border-radius:10px;font-size:12px;margin-top:12px}.hidden{display:none}@media(max-width:900px){.layout{grid-template-columns:1fr}.panel{border-right:0;border-bottom:1px solid #29251f}.stage{min-height:760px}}
+</style></head><body>
+<header class="top"><div class="brand">VJ <span class="gold">CONNECT</span></div><div class="actions"><button class="btn" onclick="logout()">Sair</button></div></header>
+<div id="login" style="max-width:430px;margin:90px auto;padding:25px"><h1>Área restrita</h1><p class="muted">Somente o administrador VJ CONNECT pode criar e editar páginas.</p><label>E-mail</label><input id="email" type="email"><label>Senha</label><input id="password" type="password"><button class="btn primary" style="width:100%;margin-top:15px" onclick="login()">ENTRAR</button><div id="msg" class="notice"></div></div>
+<div id="app" class="layout hidden"><aside class="panel"><h1>Editor do cliente</h1><p class="muted">Crie a página no template mestre. A prévia acompanha cada alteração.</p>
+<div class="section"><label>Nome</label><input id="name" oninput="state.name=this.value;preview()"><label>Descrição</label><input id="bio" oninput="state.bio=this.value;preview()"><label>Logo</label><input id="logo" type="file" accept="image/*" onchange="uploadPreview(this,'logo_url')"><label>Banner</label><input id="banner" type="file" accept="image/*" onchange="uploadPreview(this,'banner_url')"></div>
+<div class="section"><div style="display:flex;justify-content:space-between;align-items:center"><b>Blocos / links</b><button class="btn" onclick="addLink()">+ Adicionar</button></div><div id="links" class="links"></div></div>
+<div class="section"><label>Cor de destaque</label><input id="accent" type="text" value="#d8b45d" oninput="state.theme.accent=this.value;preview()"><label>Arredondamento</label><select id="radius" onchange="state.theme.radius=this.value;preview()"><option value="12">12px</option><option value="16" selected>16px</option><option value="22">22px</option></select></div>
+<div class="section"><button class="btn primary" style="width:100%" onclick="saveClient()">CRIAR / SALVAR PÁGINA</button><button class="btn" style="width:100%;margin-top:8px" onclick="openClient()">ABRIR PÁGINA DO CLIENTE</button><div id="status" class="muted" style="margin-top:10px"></div></div>
+</aside><main class="stage"><div class="phone"><div id="preview" class="screen"></div></div></main></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script>
 <script>
-const icon={
-instagram:"https://cdn.simpleicons.org/instagram",
-whatsapp:"https://cdn.simpleicons.org/whatsapp",
-google:"https://cdn.simpleicons.org/google",
-maps:"https://cdn.simpleicons.org/googlemaps",
-tiktok:"https://cdn.simpleicons.org/tiktok",
-facebook:"https://cdn.simpleicons.org/facebook",
-youtube:"https://cdn.simpleicons.org/youtube",
-link:"https://cdn.simpleicons.org/link"
-};
-let state={
-name:"",bio:"Tecnologia que aproxima",logo:"",banner:"",accent:"#d8b45d",
-bg:"#f5efe4",bg2:"#e8dcc6",text:"#171717",button:"#151515",buttonText:"#ffffff",
-bgMode:"solid",gradientDir:"135deg",buttonStyle:"solid",
-links:[
-{label:"Instagram",url:"https://instagram.com/",icon:"instagram"},
-{label:"WhatsApp",url:"https://wa.me/",icon:"whatsapp"},
-{label:"Google",url:"https://google.com/",icon:"google"},
-{label:"Como chegar",url:"https://maps.google.com/",icon:"maps"}
-]};
-function esc(v){return String(v||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
-function enter(){document.getElementById("login").classList.add("hidden");document.getElementById("admin").classList.remove("hidden");document.getElementById("logout").classList.remove("hidden");draw();render()}
-function logout(){location.reload()}
-function image(el,key){const f=el.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{state[key]=r.result;render()};r.readAsDataURL(f)}
-function add(){state.links.push({label:"Novo link",url:"https://",icon:"link"});draw();render()}
-function remove(i){state.links.splice(i,1);draw();render()}
-function draw(){
-document.getElementById("links").innerHTML=state.links.map((x,i)=>`
-<div class="linkrow">
-<img src="${x.icon_url||icon[x.icon]||icon.link}">
-<input value="${esc(x.label)}" oninput="state.links[${i}].label=this.value;render()">
-<input value="${esc(x.url)}" oninput="state.links[${i}].url=this.value;render()">
-<button class="btn small danger delete-link" type="button" onclick="remove(${i})" title="Apagar este link" aria-label="Apagar este link">
-<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6l1 2h4v2H4V5h4l1-2zm-3 6h12l-.8 12H6.8L6 9zm3 2v8h2v-8H9zm4 0v8h2v-8h-2z"/></svg>
-</button>
-</div>`).join("");
+let sb=null,currentId=null,state={name:"",bio:"Tecnologia que aproxima",logo_url:"",banner_url:"",theme:{accent:"#d8b45d",radius:"16"},links:[
+{label:"Instagram",url:"https://instagram.com/",icon_key:"instagram",icon_url:"",enabled:true},
+{label:"WhatsApp",url:"https://wa.me/",icon_key:"whatsapp",icon_url:"",enabled:true},
+{label:"Google",url:"https://google.com/",icon_key:"google",icon_url:"",enabled:true},
+{label:"Como chegar",url:"https://maps.google.com/",icon_key:"maps",icon_url:"",enabled:true}]};
+const icons={instagram:"https://cdn.simpleicons.org/instagram",whatsapp:"https://cdn.simpleicons.org/whatsapp",google:"https://cdn.simpleicons.org/google",maps:"https://cdn.simpleicons.org/googlemaps",tiktok:"https://cdn.simpleicons.org/tiktok",facebook:"https://cdn.simpleicons.org/facebook",youtube:"https://cdn.simpleicons.org/youtube",site:"https://cdn.simpleicons.org/googlechrome",cardapio:"https://cdn.simpleicons.org/foodpanda",pix:"https://cdn.simpleicons.org/pix",link:"https://cdn.simpleicons.org/link"};
+function safe(s){return String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+function preview(){let l=state.links.filter(x=>x.enabled);document.getElementById("preview").innerHTML=`${state.banner_url?`<div class="banner" style="background-image:url('${state.banner_url}')"></div>`:'<div class="banner"></div>'}${state.logo_url?`<img class="plogo" src="${state.logo_url}">`:''}<div class="pname">${safe(state.name||"Nome da empresa")}</div><div class="pbio">${safe(state.bio)}</div>${l.map(x=>`<a class="plink" href="${safe(x.url)}" target="_blank"><img src="${x.icon_url||icons[x.icon_key]||icons.link}">${safe(x.label)}</a>`).join("")}<div class="tag">VJ CONNECT · TECNOLOGIA QUE APROXIMA</div>`}
+function drawLinks(){document.getElementById("links").innerHTML=state.links.map((l,i)=>`<div class="link"><img src="${l.icon_url||icons[l.icon_key]||icons.link}"><input value="${safe(l.label)}" oninput="state.links[${i}].label=this.value;preview()"><input value="${safe(l.url)}" oninput="state.links[${i}].url=this.value;preview()"><button class="btn mini danger" onclick="state.links.splice(${i},1);drawLinks();preview()">×</button></div>`).join("");preview()}
+function addLink(){state.links.push({label:"Novo link",url:"#",icon_key:"link",icon_url:"",enabled:true});drawLinks()}
+async function login(){
+  if(!sb)return msg("Configure admin/config.js primeiro.");
+  const emailValue=document.getElementById("email").value.trim();
+  const passwordValue=document.getElementById("password").value;
+  if(!emailValue||!passwordValue)return msg("Informe e-mail e senha.");
+
+  const {data,error}=await sb.auth.signInWithPassword({
+    email:emailValue,
+    password:passwordValue
+  });
+
+  if(error)return msg(error.message);
+  if(!data?.session)return msg("Não foi possível iniciar uma sessão autenticada.");
+
+  document.getElementById("login").classList.add("hidden");
+  document.getElementById("app").classList.remove("hidden");
+  document.querySelector(".actions button").classList.remove("hidden");
+  drawLinks();
 }
-function content(v=visualCSS()){
-const links=state.links.map(x=>{
-const iconUrl=x.icon_url||icon[x.icon]||icon.link;
-return `<a class="plink" style="border-radius:16px;background:${v.buttonBackground};border:${v.buttonBorder};color:${state.buttonText}" href="${esc(x.url)}" target="_blank" rel="noopener"><img src="${iconUrl}">${esc(x.label)}</a>`;
-}).join("");
-return `<div style="background:${v.background};color:${state.text};min-height:100%;padding:0 0 18px;border-radius:18px">
-${state.banner?`<div class="banner" style="background-image:url('${state.banner}')"></div>`:`<div class="banner"></div>`}
-${state.logo?`<img class="logo" src="${state.logo}">`:""}
-<div class="name">${esc(state.name||"Nome da empresa")}</div>
-<div class="bio" style="color:${state.text};opacity:.65">${esc(state.bio)}</div>${links}<div class="tag" style="color:${state.text};opacity:.55">TECNOLOGIA QUE APROXIMA</div></div>`;
+async function logout(){if(sb)await sb.auth.signOut();location.reload()}
+function msg(x){document.getElementById("msg").textContent=x}
+async function boot(){
+  if(!sb)return;
+  document.getElementById("login").classList.remove("hidden");
+  document.getElementById("app").classList.add("hidden");
+  document.querySelector(".actions button").classList.add("hidden");
+  document.getElementById("email").focus();
 }
-function visualCSS(){
-const background = state.bgMode==="gradient"
- ? `linear-gradient(${state.gradientDir}, ${state.bg}, ${state.bg2})`
- : state.bg;
-const buttonBackground = state.buttonStyle==="gradient"
- ? `linear-gradient(135deg, ${state.button}, ${state.accent})`
- : state.buttonStyle==="outline"
- ? "transparent"
- : state.button;
-const buttonBorder = state.buttonStyle==="outline" ? `2px solid ${state.accent}` : "1px solid transparent";
-return {background,buttonBackground,buttonBorder};
+async function uploadPreview(input,key){let f=input.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{state[key]=r.result;preview()};r.readAsDataURL(f)}
+function slug(x){return x.toLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"cliente"}
+async function saveClient(){
+if(!sb)return msg("Configure o Supabase antes de salvar.");if(!state.name.trim())return msg("Digite o nome da empresa.");
+// Nesta primeira implementação, imagens são mantidas como prévia local. Para produção, envie-as ao Storage e salve as URLs.
+let base={slug:slug(state.name)+"-"+Date.now().toString(36),name:state.name,bio:state.bio,logo_url:state.logo_url,banner_url:state.banner_url,theme:state.theme,published:true};
+let {data:c,error}=await sb.from("clients").insert(base).select().single();if(error)return msg(error.message);
+currentId=c.id;let rows=state.links.map((x,i)=>({client_id:c.id,position:i,label:x.label,url:x.url,icon_key:x.icon_key,icon_url:x.icon_url,enabled:x.enabled}));
+let {error:e}=await sb.from("client_links").insert(rows);if(e)return msg(e.message);
+document.getElementById("status").textContent="Página criada: client/index.html?slug="+c.slug;
+window.open("../client/index.html?slug="+encodeURIComponent(c.slug),"_blank")
 }
-function render(){
-const v=visualCSS();
-document.getElementById("preview").innerHTML=content(v);
-document.getElementById("publicPage").innerHTML=content(v);
-document.getElementById("preview").style.background=v.background;
-document.getElementById("preview").style.color=state.text;
-document.getElementById("publicPage").style.background=v.background;
-document.getElementById("publicPage").style.color=state.text;
-document.documentElement.style.setProperty("--gold",state.accent);
-}
-function createPage(){
-if(!state.name.trim()){document.getElementById("status").textContent="Digite o nome da empresa primeiro.";return}
-const slug=state.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
-localStorage.setItem("vjconnect_demo",JSON.stringify({...state,slug}));
-document.getElementById("status").innerHTML=`✓ Página criada com sucesso.<br><b>Cliente:</b> ${esc(state.name)}<br><b>URL exclusiva:</b> <span style="color:#fff">/cliente/${esc(slug)}</span><br><span style="opacity:.75">Essa URL não terá menu ou link para o site principal.</span>`;
-showPublic();
-}
-function showPublic(){
-document.getElementById("admin").classList.add("hidden");document.getElementById("public").classList.remove("hidden");document.getElementById("logout").classList.add("hidden");render();
-}
-function backAdmin(){document.getElementById("public").classList.add("hidden");document.getElementById("admin").classList.remove("hidden");document.getElementById("logout").classList.remove("hidden")}
-draw();render();
-</script>
-</body>
-</html>
+function openClient(){if(!currentId)return msg("Salve/crie a página primeiro.");}
+(async()=>{
+  if(window.VJ_SUPABASE?.url&&window.VJ_SUPABASE?.anonKey){
+    sb=supabase.createClient(window.VJ_SUPABASE.url,window.VJ_SUPABASE.anonKey);
+    await sb.auth.signOut({scope:"local"});
+  }
+  await boot();
+})();
+</script></body></html>
