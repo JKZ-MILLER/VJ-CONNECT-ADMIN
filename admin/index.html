@@ -27,8 +27,8 @@
 <div class="field"><label>Nome da empresa</label><input id="name" oninput="render()"></div>
 <div class="field"><label>Slug / URL</label><input id="slug" oninput="render()"><div class="muted">Ex.: restaurante-do-joao</div></div>
 <div class="field"><label>Descrição</label><textarea id="bio" oninput="render()">Tecnologia que aproxima</textarea></div>
-<div class="field"><label>Logo (URL da imagem)</label><input id="logo" oninput="render()" placeholder="https://..."></div>
-<div class="field"><label>Banner (URL da imagem)</label><input id="banner" oninput="render()" placeholder="https://..."></div>
+<div class="field"><label>Logo</label><input id="logoFile" type="file" accept="image/*" onchange="handleUpload('logo',this.files[0])"><div id="logoFileStatus" class="muted">Selecione uma imagem ou mantenha a logo atual.</div><input id="logo" oninput="render()" placeholder="URL opcional"></div>
+<div class="field"><label>Banner</label><input id="bannerFile" type="file" accept="image/*" onchange="handleUpload('banner',this.files[0])"><div id="bannerFileStatus" class="muted">Selecione uma imagem ou mantenha o banner atual.</div><input id="banner" oninput="render()" placeholder="URL opcional"></div>
 
 <div class="field"><label>Cor do fundo</label><input id="bg" type="color" value="#f5efe4" oninput="render()"></div>
 <div class="field"><label>Segunda cor</label><input id="bg2" type="color" value="#e8dcc6" oninput="render()"></div>
@@ -82,7 +82,7 @@ async function logout(){await db.auth.signOut()}
 async function showApp(){$("login").classList.add("hidden");$("app").classList.remove("hidden");newClient();loadClients()}
 function newClient(){
  currentId=null; $("formTitle").textContent="Criar cliente";
- $("name").value=""; $("slug").value=""; $("bio").value="Tecnologia que aproxima"; $("logo").value=""; $("banner").value="";
+ $("name").value=""; $("slug").value=""; $("bio").value="Tecnologia que aproxima"; $("logo").value=""; $("banner").value=""; $("logoFile").value=""; $("bannerFile").value=""; $("logoFileStatus").textContent="Selecione uma imagem ou mantenha a logo atual."; $("bannerFileStatus").textContent="Selecione uma imagem ou mantenha o banner atual.";
  $("bg").value="#f5efe4";$("bg2").value="#e8dcc6";$("text").value="#171717";$("button").value="#151515";$("buttonText").value="#ffffff";$("accent").value="#d8b45d";
  $("bgMode").value="solid";$("gradientDir").value="135deg";$("buttonStyle").value="solid";linksState=[
  {label:"Instagram",url:"",icon:"instagram"},{label:"WhatsApp",url:"",icon:"whatsapp"},{label:"Como chegar",url:"",icon:"maps"}
@@ -104,6 +104,20 @@ function render(){
  $("preview").style.background=bg;$("preview").style.color=c.text;
  $("preview").innerHTML=`${c.banner?`<div class="banner" style="background-image:url('${esc(c.banner)}')"></div>`:`<div class="banner"></div>`}${c.logo?`<img class="logo" src="${esc(c.logo)}">`:""}<div class="name">${esc(c.name||"Nome da empresa")}</div><div class="bio" style="opacity:.65">${esc(c.bio)}</div>${linksState.map(x=>`<a class="plink" style="background:${btn};border:${border};color:${c.buttonText}" href="#" onclick="event.preventDefault()"><img src="${icons[x.icon]||icons.link}">${esc(x.label||"Link")}</a>`).join("")}<div style="text-align:center;font-size:9px;letter-spacing:.12em;opacity:.5;margin-top:20px">TECNOLOGIA QUE APROXIMA</div>`;
 }
+async function handleUpload(kind,file){
+ if(!file)return;
+ const status=$(kind+"FileStatus");
+ status.textContent="Enviando "+file.name+"...";
+ const ext=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"");
+ const safeSlug=slugify($("slug").value||$("name").value)||("cliente-"+Date.now());
+ const path=safeSlug+"/"+kind+"-"+Date.now()+"."+ext;
+ const {error}=await db.storage.from("client-assets").upload(path,file,{upsert:true,contentType:file.type||"image/jpeg"});
+ if(error){status.textContent="Erro no upload: "+error.message;return}
+ const {data}=db.storage.from("client-assets").getPublicUrl(path);
+ if(kind==="logo")$("logo").value=data.publicUrl; else $("banner").value=data.publicUrl;
+ status.textContent="✓ "+file.name+" enviado.";
+ render();
+}
 function payload(){let slug=slugify($("slug").value||$("name").value);$("slug").value=slug;return {slug,name:$("name").value.trim(),bio:$("bio").value,logo_url:$("logo").value.trim()||null,banner_url:$("banner").value.trim()||null,theme:theme(),published:true}}
 async function saveClient(){
  const p=payload();if(!p.name||!p.slug){setStatus("Informe nome e slug.");return}
@@ -124,7 +138,7 @@ async function loadClients(){
 }
 async function editClient(id){
  const c=(await db.from("clients").select("*").eq("id",id).single()).data;if(!c)return;
- currentId=c.id;$("formTitle").textContent="Editar cliente";$("name").value=c.name;$("slug").value=c.slug;$("bio").value=c.bio||"";$("logo").value=c.logo_url||"";$("banner").value=c.banner_url||"";
+ currentId=c.id;$("formTitle").textContent="Editar cliente";$("name").value=c.name;$("slug").value=c.slug;$("bio").value=c.bio||"";$("logo").value=c.logo_url||"";$("banner").value=c.banner_url||"";$("logoFile").value="";$("bannerFile").value="";$("logoFileStatus").textContent=c.logo_url?"Logo atual carregada.":"Nenhuma logo enviada.";$("bannerFileStatus").textContent=c.banner_url?"Banner atual carregado.":"Nenhum banner enviado.";
  const t=c.theme||{};for(const k of ["bg","bg2","text","button","buttonText","accent","bgMode","gradientDir","buttonStyle"])if(t[k]!=null)$(k).value=t[k];
  const lr=await db.from("client_links").select("*").eq("client_id",id).order("position");linksState=(lr.data||[]).map(x=>({label:x.label,url:x.url,icon:x.icon_key||"link",icon_url:x.icon_url||""}));render();scrollTo({top:0,behavior:"smooth"});setStatus("");
 }

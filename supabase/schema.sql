@@ -34,6 +34,10 @@ drop policy if exists "public_can_read_published_clients" on public.clients;
 create policy "public_can_read_published_clients" on public.clients
 for select using (published = true);
 
+drop policy if exists "authenticated_can_manage_clients" on public.clients;
+create policy "authenticated_can_manage_clients" on public.clients
+for all to authenticated using (true) with check (true);
+
 drop policy if exists "public_can_read_enabled_links" on public.client_links;
 create policy "public_can_read_enabled_links" on public.client_links
 for select using (
@@ -43,7 +47,27 @@ for select using (
  )
 );
 
--- IMPORTANTE:
--- O painel usa Supabase Auth. Depois de criar seu usuário administrador,
--- as políticas de INSERT/UPDATE/DELETE devem permitir somente esse usuário.
--- Não coloque service_role no frontend.
+drop policy if exists "authenticated_can_manage_links" on public.client_links;
+create policy "authenticated_can_manage_links" on public.client_links
+for all to authenticated using (true) with check (true);
+
+insert into storage.buckets (id, name, public)
+values ('client-assets','client-assets',true)
+on conflict (id) do update set public = true;
+
+drop policy if exists "public_can_view_client_assets" on storage.objects;
+create policy "public_can_view_client_assets" on storage.objects
+for select using (bucket_id = 'client-assets');
+
+drop policy if exists "authenticated_can_upload_client_assets" on storage.objects;
+create policy "authenticated_can_upload_client_assets" on storage.objects
+for insert to authenticated with check (bucket_id = 'client-assets');
+
+drop policy if exists "authenticated_can_update_client_assets" on storage.objects;
+create policy "authenticated_can_update_client_assets" on storage.objects
+for update to authenticated using (bucket_id = 'client-assets')
+with check (bucket_id = 'client-assets');
+
+drop policy if exists "authenticated_can_delete_client_assets" on storage.objects;
+create policy "authenticated_can_delete_client_assets" on storage.objects
+for delete to authenticated using (bucket_id = 'client-assets');
