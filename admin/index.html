@@ -21,9 +21,20 @@ let sb=null,currentId=null,state={name:"",bio:"Tecnologia que aproxima",logo_url
 const icons={instagram:"https://cdn.simpleicons.org/instagram",whatsapp:"https://cdn.simpleicons.org/whatsapp",google:"https://cdn.simpleicons.org/google",maps:"https://cdn.simpleicons.org/googlemaps",tiktok:"https://cdn.simpleicons.org/tiktok",facebook:"https://cdn.simpleicons.org/facebook",youtube:"https://cdn.simpleicons.org/youtube",site:"https://cdn.simpleicons.org/googlechrome",cardapio:"https://cdn.simpleicons.org/foodpanda",pix:"https://cdn.simpleicons.org/pix",link:"https://cdn.simpleicons.org/link"};
 function safe(s){return String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
 function preview(){let l=state.links.filter(x=>x.enabled);document.getElementById("preview").innerHTML=`${state.banner_url?`<div class="banner" style="background-image:url('${state.banner_url}')"></div>`:'<div class="banner"></div>'}${state.logo_url?`<img class="plogo" src="${state.logo_url}">`:''}<div class="pname">${safe(state.name||"Nome da empresa")}</div><div class="pbio">${safe(state.bio)}</div>${l.map(x=>`<a class="plink" href="${safe(x.url)}" target="_blank"><img src="${x.icon_url||icons[x.icon_key]||icons.link}">${safe(x.label)}</a>`).join("")}<div class="tag">VJ CONNECT · TECNOLOGIA QUE APROXIMA</div>`}
-function drawLinks(){document.getElementById("links").innerHTML=state.links.map((l,i)=>`<div class="link"><img src="${l.icon_url||icons[l.icon_key]||icons.link}"><input value="${safe(l.label)}" oninput="state.links[${i}].label=this.value;preview()"><input value="${safe(l.url)}" oninput="state.links[${i}].url=this.value;preview()"><button class="btn mini danger" onclick="state.links.splice(${i},1);drawLinks();preview()">×</button></div>`).join("");preview()}
+function drawLinks(){document.getElementById("links").innerHTML=state.links.map((l,i)=>`<div class="link"><img src="${l.icon_url||icons[l.icon_key]||icons.link}"><input value="${safe(l.label)}" oninput="state.links[${i}].label=this.value;preview()"><input value="${safe(l.url)}" oninput="state.links[${i}].url=this.value;preview()"><button class="btn mini danger" title="Apagar link" aria-label="Apagar link" onclick="state.links.splice(${i},1);drawLinks();preview()">🗑</button></div>`).join("");preview()}
 function addLink(){state.links.push({label:"Novo link",url:"#",icon_key:"link",icon_url:"",enabled:true});drawLinks()}
-async function login(){if(!sb)return msg("Supabase não configurado. Verifique admin/config.js.");const {error}=await sb.auth.signInWithPassword({email:email.value,password:password.value});if(error)return msg(error.message);await boot()}
+async function login(){
+  if(!sb)return msg("Supabase não configurado. Verifique admin/config.js.");
+  const emailValue=document.getElementById("email").value.trim();
+  const passwordValue=document.getElementById("password").value;
+  if(!emailValue||!passwordValue)return msg("Informe e-mail e senha.");
+  const {data,error}=await sb.auth.signInWithPassword({email:emailValue,password:passwordValue});
+  if(error)return msg(error.message);
+  if(!data?.session)return msg("Não foi possível iniciar uma sessão.");
+  document.getElementById("login").classList.add("hidden");
+  document.getElementById("app").classList.remove("hidden");
+  drawLinks();
+}
 async function logout(){if(sb)await sb.auth.signOut();location.reload()}
 function msg(x){document.getElementById("msg").textContent=x}
 async function boot(){
