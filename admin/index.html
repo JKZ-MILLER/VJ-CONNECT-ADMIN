@@ -65,6 +65,8 @@ const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const icons={instagram:"https://cdn.simpleicons.org/instagram",whatsapp:"https://cdn.simpleicons.org/whatsapp",google:"https://cdn.simpleicons.org/google",maps:"https://cdn.simpleicons.org/googlemaps",tiktok:"https://cdn.simpleicons.org/tiktok",facebook:"https://cdn.simpleicons.org/facebook",youtube:"https://cdn.simpleicons.org/youtube",link:"https://cdn.simpleicons.org/link"};
 let currentId=null;
 let linksState=[];
+let appInitialized=false;
+const DRAFT_KEY="vjconnect_admin_draft_v1";
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 
@@ -105,7 +107,56 @@ function theme(){
  return {bg:$("bg").value,bg2:$("bg2").value,text:$("text").value,button:$("button").value,buttonText:$("buttonText").value,accent:$("accent").value,bgMode:$("bgMode").value,gradientDir:$("gradientDir").value,buttonStyle:$("buttonStyle").value};
 }
 function slugify(v){return v.normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"")}
+function saveDraft(){
+  try{
+    const draft={
+      currentId,
+      name:$("name").value,
+      slug:$("slug").value,
+      bio:$("bio").value,
+      logo:$("logo").value,
+      banner:$("banner").value,
+      bg:$("bg").value,
+      bg2:$("bg2").value,
+      text:$("text").value,
+      button:$("button").value,
+      buttonText:$("buttonText").value,
+      accent:$("accent").value,
+      bgMode:$("bgMode").value,
+      gradientDir:$("gradientDir").value,
+      buttonStyle:$("buttonStyle").value,
+      links:linksState
+    };
+    localStorage.setItem(DRAFT_KEY,JSON.stringify(draft));
+  }catch(e){}
+}
+
+function loadDraft(){
+  try{
+    const raw=localStorage.getItem(DRAFT_KEY);
+    if(!raw){newClient();return}
+    const d=JSON.parse(raw);
+    currentId=d.currentId||null;
+    $("formTitle").textContent=currentId?"Editar cliente":"Criar cliente";
+    $("name").value=d.name||"";
+    $("slug").value=d.slug||"";
+    $("bio").value=d.bio||"Tecnologia que aproxima";
+    $("logo").value=d.logo||"";
+    $("banner").value=d.banner||"";
+    $("logoFile").value="";
+    $("bannerFile").value="";
+    $("logoFileStatus").textContent=d.logo?"Logo atual carregada.":"Selecione uma imagem ou mantenha a logo atual.";
+    $("bannerFileStatus").textContent=d.banner?"Banner atual carregado.":"Selecione uma imagem ou mantenha o banner atual.";
+    for(const k of ["bg","bg2","text","button","buttonText","accent","bgMode","gradientDir","buttonStyle"]){
+      if(d[k]!=null)$(k).value=d[k];
+    }
+    linksState=Array.isArray(d.links)?d.links:[];
+    render();
+  }catch(e){newClient()}
+}
+
 function render(){
+ saveDraft();
  const c={name:$("name").value,bio:$("bio").value,logo:$("logo").value,banner:$("banner").value,...theme(),links:linksState};
  const bg=c.bgMode==="gradient"?`linear-gradient(${c.gradientDir},${c.bg},${c.bg2})`:c.bg;
  const btn=c.buttonStyle==="gradient"?`linear-gradient(135deg,${c.button},${c.accent})`:c.buttonStyle==="outline"?"transparent":c.button;
@@ -138,7 +189,7 @@ async function saveClient(){
  await db.from("client_links").delete().eq("client_id",clientId);
  const rows=linksState.filter(x=>x.url.trim()).map((x,i)=>({client_id:clientId,position:i,label:x.label.trim()||"Link",url:x.url.trim(),icon_key:x.icon,icon_url:null,enabled:true}));
  if(rows.length){const lr=await db.from("client_links").insert(rows);if(lr.error){setStatus("Cliente salvo, mas houve erro nos links: "+lr.error.message);return}}
- setStatus("✓ Cliente salvo. URL: "+publicURL(p.slug));loadClients();
+ localStorage.removeItem(DRAFT_KEY); setStatus("✓ Cliente salvo. URL: "+publicURL(p.slug));loadClients();
 }
 async function loadClients(){
  const {data,error}=await db.from("clients").select("id,slug,name,published,updated_at").order("created_at",{ascending:false});
