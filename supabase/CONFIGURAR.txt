@@ -1,13 +1,7 @@
-SUPABASE — próxima etapa
-
-1. Crie um projeto no Supabase.
-2. Execute schema.sql no SQL Editor.
-3. Configure o Supabase Auth para o seu usuário administrador.
-4. Crie o bucket de Storage para logos/banners.
-5. Preencha as variáveis públicas do projeto na configuração do front-end.
-6. Não coloque a service_role key no navegador.
-
-A URL final será gerada pelo slug do cliente, por exemplo:
-https://SEU-DOMINIO/cliente/restaurante-do-joao
-
-A página pública não terá menu de retorno ao site/painel.
+1) Supabase Dashboard -> SQL Editor -> New query -> cole schema.sql -> Run.
+2) Authentication -> Users -> crie seu usuário administrador (email + senha).
+3) O frontend usa a URL e publishable key já configuradas no admin/client.
+4) Depois, no Vercel, publique o repositório.
+5) A página pública nesta primeira versão usa ?slug=... para funcionar sem servidor adicional.
+6) Na etapa de produção podemos trocar para /cliente/slug com rewrite da Vercel.
+7) NÃO use a service_role key no navegador.
