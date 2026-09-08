@@ -24,8 +24,8 @@
 <div class="grid">
 <section class="card">
 <h2 id="formTitle" style="margin-top:0">Criar cliente</h2>
-<div class="field"><label>Nome da empresa</label><input id="name" oninput="render()"></div>
-<div class="field"><label>Slug / URL</label><input id="slug" oninput="render()"><div class="muted">Ex.: restaurante-do-joao</div></div>
+<div class="field"><label>Nome da empresa</label><input id="name" oninput="autoSlug();render()" onblur="autoSlug();render()"></div>
+<div class="field"><label>Slug / URL</label><input id="slug" oninput="this.dataset.auto='false';render()"><div class="muted">Ex.: restaurante-do-joao</div></div>
 <div class="field"><label>Descrição</label><textarea id="bio" oninput="render()">Tecnologia que aproxima</textarea></div>
 <div class="field"><label>Logo</label><input id="logoFile" type="file" accept="image/*" onchange="handleUpload('logo',this.files[0])"><div id="logoFileStatus" class="muted">Selecione uma imagem ou mantenha a logo atual.</div><input id="logo" oninput="render()" placeholder="URL opcional"></div>
 <div class="field"><label>Banner</label><input id="bannerFile" type="file" accept="image/*" onchange="handleUpload('banner',this.files[0])"><div id="bannerFileStatus" class="muted">Selecione uma imagem ou mantenha o banner atual.</div><input id="banner" oninput="render()" placeholder="URL opcional"></div>
@@ -81,15 +81,7 @@ async function login(){
  if(error){$("loginStatus").textContent=error.message;$("loginStatus").classList.remove("hidden");}
 }
 async function logout(){await db.auth.signOut()}
-async function showApp(){
- $("login").classList.add("hidden");
- $("app").classList.remove("hidden");
- if(!appInitialized){
-   appInitialized=true;
-   loadDraft();
- }
- loadClients();
-}
+async function showApp(){$("login").classList.add("hidden");$("app").classList.remove("hidden");newClient();loadClients()}
 function newClient(){
  currentId=null; $("formTitle").textContent="Criar cliente";
  $("name").value=""; $("slug").value=""; $("bio").value="Tecnologia que aproxima"; $("logo").value=""; $("banner").value=""; $("logoFile").value=""; $("bannerFile").value=""; $("logoFileStatus").textContent="Selecione uma imagem ou mantenha a logo atual."; $("bannerFileStatus").textContent="Selecione uma imagem ou mantenha o banner atual.";
@@ -187,17 +179,44 @@ async function handleUpload(kind,file){
  status.textContent="✓ "+file.name+" enviado.";
  render();
 }
-function payload(){let slug=slugify($("slug").value||$("name").value);$("slug").value=slug;return {slug,name:$("name").value.trim(),bio:$("bio").value,logo_url:$("logo").value.trim()||null,banner_url:$("banner").value.trim()||null,theme:theme(),published:true}}
+function payload(){
+  const name = $("name").value.trim();
+  let slug = slugify($("slug").value.trim() || name);
+
+  if(!slug && name){
+    slug = "cliente-" + Date.now();
+  }
+
+  $("slug").value = slug;
+
+  return {
+    slug,
+    name,
+    bio: $("bio").value,
+    logo_url: $("logo").value.trim() || null,
+    banner_url: $("banner").value.trim() || null,
+    theme: theme(),
+    published: true
+  };
+}
+
+function autoSlug(){
+  const name = $("name").value.trim();
+  const slugInput = $("slug");
+
+  if(!slugInput.value.trim() || slugInput.dataset.auto === "true"){
+    slugInput.value = slugify(name);
+    slugInput.dataset.auto = "true";
+  }
+}
+
 async function saveClient(){
- const {data:{session}}=await db.auth.getSession();
- if(!session){setStatus("Sua sessão expirou. Faça login novamente.");return}
  const p=payload();if(!p.name||!p.slug){setStatus("Informe nome e slug.");return}
  let clientId=currentId;
  let res=currentId?await db.from("clients").update({...p,updated_at:new Date().toISOString()}).eq("id",currentId).select().single():await db.from("clients").insert(p).select().single();
  if(res.error){setStatus("Erro ao salvar: "+res.error.message);return}
  clientId=res.data.id;currentId=clientId;
- const linkDelete=await db.from("client_links").delete().eq("client_id",clientId);
- if(linkDelete.error){setStatus("Cliente salvo, mas não foi possível atualizar os links: "+linkDelete.error.message);return}
+ await db.from("client_links").delete().eq("client_id",clientId);
  const rows=linksState.filter(x=>x.url.trim()).map((x,i)=>({client_id:clientId,position:i,label:x.label.trim()||"Link",url:x.url.trim(),icon_key:x.icon,icon_url:null,enabled:true}));
  if(rows.length){const lr=await db.from("client_links").insert(rows);if(lr.error){setStatus("Cliente salvo, mas houve erro nos links: "+lr.error.message);return}}
  localStorage.removeItem(DRAFT_KEY); setStatus("✓ Cliente salvo. URL: "+publicURL(p.slug));loadClients();
@@ -209,14 +228,10 @@ async function loadClients(){
  $("clients").innerHTML=data.map(c=>`<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;border-top:1px solid #252525;padding:12px 0"><div><b>${esc(c.name)}</b><div class="muted">/cliente/${esc(c.slug)} · ${c.published?"publicado":"rascunho"}</div></div><div class="row"><button class="btn" onclick="editClient('${c.id}')">Editar</button><button class="btn" onclick="window.open(publicURL('${encodeURIComponent(c.slug)}'),'_blank')">Abrir</button><button class="btn" onclick="navigator.clipboard.writeText(publicURL('${encodeURIComponent(c.slug)}'));setStatus('URL copiada.')">Copiar URL</button><button class="btn danger" onclick="deleteClient('${c.id}')">Excluir</button></div></div>`).join("");
 }
 async function editClient(id){
- const result=await db.from("clients").select("*").eq("id",id).single();
- if(result.error){setStatus("Erro ao abrir cliente: "+result.error.message);return}
- const c=result.data;if(!c)return;
+ const c=(await db.from("clients").select("*").eq("id",id).single()).data;if(!c)return;
  currentId=c.id;$("formTitle").textContent="Editar cliente";$("name").value=c.name;$("slug").value=c.slug;$("bio").value=c.bio||"";$("logo").value=c.logo_url||"";$("banner").value=c.banner_url||"";$("logoFile").value="";$("bannerFile").value="";$("logoFileStatus").textContent=c.logo_url?"Logo atual carregada.":"Nenhuma logo enviada.";$("bannerFileStatus").textContent=c.banner_url?"Banner atual carregado.":"Nenhum banner enviado.";
  const t=c.theme||{};for(const k of ["bg","bg2","text","button","buttonText","accent","bgMode","gradientDir","buttonStyle"])if(t[k]!=null)$(k).value=t[k];
- const lr=await db.from("client_links").select("*").eq("client_id",id).order("position");
- if(lr.error){setStatus("Erro ao carregar links: "+lr.error.message);return}
- linksState=(lr.data||[]).map(x=>({label:x.label,url:x.url,icon:x.icon_key||"link",icon_url:x.icon_url||""}));render();scrollTo({top:0,behavior:"smooth"});setStatus("");
+ const lr=await db.from("client_links").select("*").eq("client_id",id).order("position");linksState=(lr.data||[]).map(x=>({label:x.label,url:x.url,icon:x.icon_key||"link",icon_url:x.icon_url||""}));render();scrollTo({top:0,behavior:"smooth"});setStatus("");
 }
 async function deleteClient(id){if(!confirm("Excluir este cliente e todos os links?"))return;const r=await db.from("clients").delete().eq("id",id);if(r.error)setStatus(r.error.message);else{newClient();loadClients()}}
 function publicURL(slug){return new URL("../client/?slug="+encodeURIComponent(slug), location.href).href}
