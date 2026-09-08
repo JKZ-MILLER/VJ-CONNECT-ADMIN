@@ -1,0 +1,13 @@
+SUPABASE — próxima etapa
+
+1. Crie um projeto no Supabase.
+2. Execute schema.sql no SQL Editor.
+3. Configure o Supabase Auth para o seu usuário administrador.
+4. Crie o bucket de Storage para logos/banners.
+5. Preencha as variáveis públicas do projeto na configuração do front-end.
+6. Não coloque a service_role key no navegador.
+
+A URL final será gerada pelo slug do cliente, por exemplo:
+https://SEU-DOMINIO/cliente/restaurante-do-joao
+
+A página pública não terá menu de retorno ao site/painel.
