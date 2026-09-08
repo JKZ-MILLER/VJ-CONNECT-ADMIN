@@ -40,7 +40,7 @@
 <div class="field"><label>Direção do degradê</label><select id="gradientDir" onchange="render()"><option value="135deg">Diagonal ↘</option><option value="90deg">Vertical ↓</option><option value="0deg">Horizontal →</option><option value="45deg">Diagonal ↗</option></select></div>
 <div class="field"><label>Estilo dos botões</label><select id="buttonStyle" onchange="render()"><option value="solid">Sólido</option><option value="gradient">Degradê</option><option value="outline">Contorno</option></select></div>
 
-<h3>Links</h3><div id="links" class="links"></div>
+<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h3 style="margin-bottom:8px">Links</h3><button class="btn danger" onclick="clearLinks()">Apagar todos</button></div><div id="links" class="links"></div>
 <div class="row" style="margin-top:10px"><button class="btn" onclick="addLink('instagram')">+ Instagram</button><button class="btn" onclick="addLink('whatsapp')">+ WhatsApp</button><button class="btn" onclick="addLink('maps')">+ Google Maps</button><button class="btn" onclick="addLink('google')">+ Google</button><button class="btn" onclick="addLink('link')">+ Link</button></div>
 <div class="row" style="margin-top:16px"><button class="btn primary" onclick="saveClient()">Salvar cliente</button><button class="btn" onclick="openPublic()">Abrir página</button><button class="btn" onclick="copyURL()">Copiar URL</button></div>
 <div id="status" class="status hidden"></div>
@@ -89,7 +89,17 @@ function newClient(){
  ];render();setStatus("");
 }
 function addLink(icon){linksState.push({label:icon==="maps"?"Como chegar":icon==="whatsapp"?"WhatsApp":icon==="instagram"?"Instagram":"Novo link",url:"",icon});render()}
-function removeLink(i){linksState.splice(i,1);render()}
+function removeLink(i){
+ if(!confirm("Apagar este link?"))return;
+ linksState.splice(i,1);
+ render();
+}
+function clearLinks(){
+ if(!linksState.length)return;
+ if(!confirm("Apagar todos os links desta página?"))return;
+ linksState=[];
+ render();
+}
 function updateLink(i,k,v){linksState[i][k]=v;render()}
 function theme(){
  return {bg:$("bg").value,bg2:$("bg2").value,text:$("text").value,button:$("button").value,buttonText:$("buttonText").value,accent:$("accent").value,bgMode:$("bgMode").value,gradientDir:$("gradientDir").value,buttonStyle:$("buttonStyle").value};
@@ -100,7 +110,7 @@ function render(){
  const bg=c.bgMode==="gradient"?`linear-gradient(${c.gradientDir},${c.bg},${c.bg2})`:c.bg;
  const btn=c.buttonStyle==="gradient"?`linear-gradient(135deg,${c.button},${c.accent})`:c.buttonStyle==="outline"?"transparent":c.button;
  const border=c.buttonStyle==="outline"?`2px solid ${c.accent}`:"1px solid transparent";
- $("links").innerHTML=linksState.map((x,i)=>`<div class="linkrow"><select onchange="updateLink(${i},'icon',this.value)">${Object.keys(icons).map(k=>`<option value="${k}" ${x.icon===k?"selected":""}>${k}</option>`).join("")}</select><input value="${esc(x.label)}" placeholder="Nome" oninput="updateLink(${i},'label',this.value)"><input class="wide" value="${esc(x.url)}" placeholder="https://..." oninput="updateLink(${i},'url',this.value)"><button class="btn danger" onclick="removeLink(${i})">×</button></div>`).join("");
+ $("links").innerHTML=linksState.map((x,i)=>`<div class="linkrow"><select onchange="updateLink(${i},'icon',this.value)">${Object.keys(icons).map(k=>`<option value="${k}" ${x.icon===k?"selected":""}>${k}</option>`).join("")}</select><input value="${esc(x.label)}" placeholder="Nome" oninput="updateLink(${i},'label',this.value)"><input class="wide" value="${esc(x.url)}" placeholder="https://..." oninput="updateLink(${i},'url',this.value)"><button class="btn danger" title="Apagar este link" aria-label="Apagar este link" onclick="removeLink(${i})">Apagar</button></div>`).join("");
  $("preview").style.background=bg;$("preview").style.color=c.text;
  $("preview").innerHTML=`${c.banner?`<div class="banner" style="background-image:url('${esc(c.banner)}')"></div>`:`<div class="banner"></div>`}${c.logo?`<img class="logo" src="${esc(c.logo)}">`:""}<div class="name">${esc(c.name||"Nome da empresa")}</div><div class="bio" style="opacity:.65">${esc(c.bio)}</div>${linksState.map(x=>`<a class="plink" style="background:${btn};border:${border};color:${c.buttonText}" href="#" onclick="event.preventDefault()"><img src="${icons[x.icon]||icons.link}">${esc(x.label||"Link")}</a>`).join("")}<div style="text-align:center;font-size:9px;letter-spacing:.12em;opacity:.5;margin-top:20px">TECNOLOGIA QUE APROXIMA</div>`;
 }
