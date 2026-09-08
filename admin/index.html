@@ -1,62 +1,205 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>VJ CONNECT — Painel</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VJ CONNECT — Admin</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./config.js"></script>
 <style>
-:root{--gold:#d8b45d}*{box-sizing:border-box}body{margin:0;background:#090909;color:#fff;font-family:Inter,Arial,sans-serif}.wrap{max-width:1300px;margin:auto;padding:24px}.top{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:20px}.brand{font-weight:950;letter-spacing:.08em}.card{background:#111;border:1px solid #28231c;border-radius:18px;padding:18px}.grid{display:grid;grid-template-columns:420px 1fr;gap:18px}.field{margin:0 0 13px}.field label{display:block;font-size:12px;font-weight:800;margin-bottom:6px;opacity:.8}.field input,.field textarea,.field select{width:100%;padding:11px;border-radius:10px;border:1px solid #3a342b;background:#0b0b0b;color:#fff}.field textarea{min-height:72px;resize:vertical}.btn{border:1px solid #3b3328;background:#181512;color:#fff;border-radius:10px;padding:11px 14px;font-weight:800;cursor:pointer}.btn.primary{background:var(--gold);color:#111;border-color:var(--gold)}.btn.danger{border-color:#713b3b;color:#ffb4b4}.row{display:flex;gap:8px;flex-wrap:wrap}.muted{opacity:.55;font-size:12px}.links{display:grid;gap:8px}.linkrow{display:grid;grid-template-columns:100px 1fr 1fr auto;gap:7px;align-items:center}.linkrow input,.linkrow select{padding:9px;background:#0b0b0b;color:#fff;border:1px solid #39342c;border-radius:8px}.previewbox{position:sticky;top:18px}.phone{width:min(430px,100%);height:720px;margin:auto;border:10px solid #1a1a1a;border-radius:34px;overflow:auto;background:#222;box-shadow:0 20px 60px #000}.client{min-height:100%;padding:18px}.banner{height:190px;border-radius:20px;background:#181818 center/cover}.logo{display:block;width:90px;height:90px;border-radius:50%;object-fit:cover;margin:-45px auto 12px;border:4px solid currentColor;background:#222}.name{text-align:center;font-size:25px;font-weight:900}.bio{text-align:center;font-size:13px;line-height:1.5;margin:7px 15px 20px}.plink{display:flex;align-items:center;justify-content:center;gap:10px;text-decoration:none;padding:15px;margin:10px 0;font-weight:800}.plink img{width:21px;height:21px}.status{margin-top:12px;padding:11px;border-radius:10px;background:#171717;font-size:12px}.hidden{display:none!important}@media(max-width:900px){.grid{grid-template-columns:1fr}.previewbox{position:static}.linkrow{grid-template-columns:1fr 1fr}.linkrow .wide{grid-column:1/-1}}
+:root{--gold:#d8b45d;--bg:#070707;--panel:#101010;--panel2:#151515;--line:#28231c;--muted:#858585;--danger:#e16c6c}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:#fff;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+button,input,textarea,select{font:inherit}.hidden{display:none!important}.app{min-height:100dvh;display:grid;grid-template-columns:245px 1fr}
+.sidebar{position:sticky;top:0;height:100dvh;border-right:1px solid var(--line);background:#0b0b0b;padding:22px 15px;display:flex;flex-direction:column}
+.logoBrand{font-weight:950;letter-spacing:.16em;font-size:18px;padding:5px 10px 0}.logoBrand span{color:var(--gold)}.tag{font-size:9px;letter-spacing:.18em;color:#777;padding:6px 10px 22px}
+.nav{display:grid;gap:4px}.nav button{border:0;background:transparent;color:#999;text-align:left;padding:12px 12px;border-radius:10px;cursor:pointer;font-weight:700}.nav button:hover,.nav button.active{background:#18150f;color:#fff}.nav button.active{box-shadow:inset 3px 0 0 var(--gold)}
+.sideBottom{margin-top:auto;border-top:1px solid var(--line);padding-top:15px}.plan{background:linear-gradient(135deg,#1a160e,#111);border:1px solid #3b3020;border-radius:14px;padding:13px;margin-bottom:13px}.plan b{color:var(--gold)}.account{display:flex;gap:10px;align-items:center}.avatar{width:36px;height:36px;border-radius:50%;background:var(--gold);color:#111;display:grid;place-items:center;font-weight:950}.account small{display:block;color:#777;max-width:155px;overflow:hidden;text-overflow:ellipsis}
+.main{min-width:0}.topbar{height:72px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;background:#070707eF;backdrop-filter:blur(14px);z-index:5}.crumb{color:#777;font-size:12px}.topTitle{font-weight:900}.topActions{display:flex;gap:8px;align-items:center}.content{padding:26px;max-width:1500px;margin:auto}.view{display:none}.view.active{display:block}
+.hero{display:flex;justify-content:space-between;gap:18px;align-items:flex-end;margin-bottom:22px}.hero h1{margin:0;font-size:30px}.hero p{color:#777;margin:7px 0 0}.btn{border:1px solid #3b3328;background:#171411;color:#fff;border-radius:10px;padding:10px 13px;font-weight:800;cursor:pointer}.btn:hover{filter:brightness(1.15)}.btn.primary{background:var(--gold);border-color:var(--gold);color:#111}.btn.danger{border-color:#633535;color:#ffb0b0}.btn.icon{padding:9px 11px}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}.stat{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px}.stat small{color:#777}.stat strong{display:block;font-size:28px;margin-top:5px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px}.sectionTitle{font-weight:900;margin-bottom:12px}.table{display:grid;gap:0}.clientRow{display:grid;grid-template-columns:1fr auto;gap:15px;align-items:center;border-top:1px solid #222;padding:15px 0}.clientRow:first-child{border-top:0}.clientName{font-weight:900}.clientSlug{font-size:11px;color:#777;margin-top:4px}.clientActions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+.editor{display:grid;grid-template-columns:minmax(0,1fr) 500px;gap:18px}.editorCard{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px}.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:-20px -20px 18px;padding:10px 12px 0;overflow:auto}.tab{border:0;background:transparent;color:#777;padding:11px 13px;cursor:pointer;border-bottom:2px solid transparent;font-weight:800;white-space:nowrap}.tab.active{color:#fff;border-color:var(--gold)}
+.tabPane{display:none}.tabPane.active{display:block}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{margin-bottom:13px}.field label{display:block;font-size:11px;font-weight:850;color:#aaa;margin-bottom:6px}.field input,.field textarea,.field select{width:100%;border:1px solid #39342c;background:#0a0a0a;color:#fff;border-radius:10px;padding:11px;outline:none}.field input:focus,.field textarea:focus,.field select:focus{border-color:#6a5a38}.field textarea{min-height:90px;resize:vertical}.colorRow{display:grid;grid-template-columns:1fr 1fr;gap:10px}.colorBox{display:flex;align-items:center;gap:8px;border:1px solid #302b25;background:#0b0b0b;border-radius:10px;padding:7px}.colorBox input{padding:0;width:40px;height:30px;border:0;background:transparent}.muted{font-size:11px;color:#777}.media{display:grid;grid-template-columns:1fr 1fr;gap:12px}.mediaBox{border:1px dashed #40392e;border-radius:14px;padding:12px}.mediaBox img{width:100%;height:130px;object-fit:cover;border-radius:10px;background:#181818;margin-bottom:9px}.mediaBox .logoPreview{object-fit:contain}
+.links{display:grid;gap:8px}.linkrow{display:grid;grid-template-columns:30px 110px 1fr 1fr auto;gap:7px;align-items:center;background:#0b0b0b;border:1px solid #252525;padding:8px;border-radius:12px}.drag{color:#666;cursor:grab;text-align:center}.linkrow input,.linkrow select{width:100%;padding:9px;background:#101010;color:#fff;border:1px solid #34302a;border-radius:8px}.trash{border:1px solid #673838;background:#1b1010;color:#ff9d9d;width:36px;height:36px;border-radius:9px;cursor:pointer}.addLinks{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.previewWrap{position:sticky;top:92px}.deviceBar{display:flex;justify-content:center;gap:5px;margin-bottom:10px}.device{border:1px solid #302b24;background:#111;color:#777;border-radius:9px;padding:8px 11px;cursor:pointer;font-size:11px;font-weight:800}.device.active{color:#111;background:var(--gold);border-color:var(--gold)}.phone{width:100%;height:760px;display:flex;justify-content:center}.screen{width:min(390px,100%);height:100%;overflow:auto;border:9px solid #1a1a1a;border-radius:32px;background:#222;box-shadow:0 30px 80px #000}.clientPage{min-height:100%;padding:16px}.banner{height:185px;border-radius:19px;background:#181818 center/cover}.logoImg{display:block;width:88px;height:88px;border-radius:50%;object-fit:cover;margin:-44px auto 12px;border:4px solid currentColor;background:#222}.name{text-align:center;font-size:25px;font-weight:950}.bio{text-align:center;font-size:13px;line-height:1.5;margin:7px 15px 20px}.pLink{display:flex;align-items:center;justify-content:center;gap:10px;text-decoration:none;padding:15px;border-radius:15px;margin:10px 0;font-weight:850}.pLink img{width:21px;height:21px}.verify{text-align:center;font-size:11px;margin:5px 0 14px}.footer{text-align:center;font-size:8px;letter-spacing:.14em;opacity:.45;margin-top:20px}
+.toast{position:fixed;right:20px;bottom:20px;background:#161616;border:1px solid #3b3328;border-radius:12px;padding:12px 15px;box-shadow:0 20px 50px #0008;z-index:20;max-width:390px}.empty{text-align:center;padding:40px 10px;color:#777}.login{min-height:100dvh;display:grid;place-items:center;padding:22px;background:radial-gradient(circle at 50% 0,#1c170d 0,#090909 45%)}.loginCard{width:min(430px,100%);background:#101010;border:1px solid var(--line);border-radius:20px;padding:26px;box-shadow:0 30px 100px #000}.loginLogo{font-weight:950;letter-spacing:.14em;font-size:23px}.loginLogo span{color:var(--gold)}
+@media(max-width:1100px){.editor{grid-template-columns:1fr}.previewWrap{position:static}.previewWrap .phone{height:720px}.cards{grid-template-columns:1fr 1fr}.app{grid-template-columns:215px 1fr}}
+@media(max-width:760px){.app{display:block}.sidebar{position:fixed;z-index:10;left:-260px;width:250px;transition:.2s}.sidebar.open{left:0}.topbar{padding:0 15px}.content{padding:16px}.grid2,.media{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.hero{align-items:flex-start;flex-direction:column}.linkrow{grid-template-columns:26px 1fr auto}.linkrow .url{grid-column:2/-1}.topTitle{font-size:14px}.menuBtn{display:block!important}.previewWrap .phone{height:calc(100dvh - 150px);min-height:600px}}
+.menuBtn{display:none}
 </style>
 </head>
 <body>
-<div id="login" class="wrap" style="max-width:460px;padding-top:80px">
-<div class="card">
-<div class="brand" style="font-size:24px">VJ CONNECT</div>
-<h2>Painel administrativo</h2><p class="muted">Acesso restrito ao administrador.</p>
-<div class="field"><label>E-mail</label><input id="email" type="email" autocomplete="email"></div>
-<div class="field"><label>Senha</label><input id="password" type="password" autocomplete="current-password"></div>
-<button class="btn primary" style="width:100%" onclick="login()">Entrar</button>
-<div id="loginStatus" class="status hidden"></div>
-</div></div>
 
-<div id="app" class="wrap hidden">
-<div class="top"><div class="brand">VJ CONNECT <span style="opacity:.4">/ ADMIN</span></div><div class="row"><span id="accountEmail" class="muted"></span><button class="btn" onclick="newClient()">+ Novo cliente</button><button class="btn" onclick="logout()">Sair</button></div></div>
-<div class="grid">
-<section class="card">
-<h2 id="formTitle" style="margin-top:0">Criar cliente</h2>
-<div class="field"><label>Nome da empresa</label><input id="name" oninput="render()"></div>
-<div class="field"><label>Slug / URL</label><input id="slug" oninput="render()"><div class="muted">Ex.: restaurante-do-joao</div></div>
-<div class="field"><label>Descrição</label><textarea id="bio" oninput="render()">Tecnologia que aproxima</textarea></div>
-<div class="field"><label>Logo</label><input id="logo" oninput="render()" placeholder="https://..."><input id="logoFile" type="file" accept="image/*" style="margin-top:7px" onchange="uploadImage('logo',this)"><div class="muted">Você pode colar uma URL ou enviar uma imagem.</div></div>
-<div class="field"><label>Banner</label><input id="banner" oninput="render()" placeholder="https://..."><input id="bannerFile" type="file" accept="image/*" style="margin-top:7px" onchange="uploadImage('banner',this)"><div class="muted">Você pode colar uma URL ou enviar uma imagem.</div></div>
-
-<div class="field"><label>Cor do fundo</label><input id="bg" type="color" value="#f5efe4" oninput="render()"></div>
-<div class="field"><label>Segunda cor</label><input id="bg2" type="color" value="#e8dcc6" oninput="render()"></div>
-<div class="field"><label>Cor do texto</label><input id="text" type="color" value="#171717" oninput="render()"></div>
-<div class="field"><label>Cor dos botões</label><input id="button" type="color" value="#151515" oninput="render()"></div>
-<div class="field"><label>Texto dos botões</label><input id="buttonText" type="color" value="#ffffff" oninput="render()"></div>
-<div class="field"><label>Cor de destaque</label><input id="accent" type="color" value="#d8b45d" oninput="render()"></div>
-<div class="field"><label>Fundo</label><select id="bgMode" onchange="render()"><option value="solid">Sólido</option><option value="gradient">Degradê</option></select></div>
-<div class="field"><label>Direção do degradê</label><select id="gradientDir" onchange="render()"><option value="135deg">Diagonal ↘</option><option value="90deg">Vertical ↓</option><option value="0deg">Horizontal →</option><option value="45deg">Diagonal ↗</option></select></div>
-<div class="field"><label>Estilo dos botões</label><select id="buttonStyle" onchange="render()"><option value="solid">Sólido</option><option value="gradient">Degradê</option><option value="outline">Contorno</option></select></div>
-
-<h3>Links</h3><div id="links" class="links"></div>
-<div class="row" style="margin-top:10px"><button class="btn" onclick="addLink('instagram')">+ Instagram</button><button class="btn" onclick="addLink('whatsapp')">+ WhatsApp</button><button class="btn" onclick="addLink('maps')">+ Google Maps</button><button class="btn" onclick="addLink('google')">+ Google</button><button class="btn" onclick="addLink('link')">+ Link</button></div>
-<div class="row" style="margin-top:16px"><button class="btn primary" onclick="saveClient()">Salvar cliente</button><button class="btn" onclick="openPublic()">Abrir página</button><button class="btn" onclick="copyURL()">Copiar URL</button></div>
-<div id="status" class="status hidden"></div>
-</section>
-
-<section class="card previewbox">
-<h2 style="margin-top:0">Prévia em tempo real</h2>
-<div class="phone"><div id="preview" class="client"></div></div>
-</section>
+<div id="login" class="login hidden">
+  <div class="loginCard">
+    <div class="loginLogo">VJ <span>CONNECT</span></div>
+    <h2>Painel administrativo</h2>
+    <p class="muted">Acesso exclusivo à área de administração.</p>
+    <div class="field"><label>E-mail</label><input id="email" type="email" autocomplete="username"></div>
+    <div class="field"><label>Senha</label><input id="password" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')login()"></div>
+    <button class="btn primary" style="width:100%" onclick="login()">Entrar</button>
+    <div id="loginStatus" class="toast hidden" style="position:static;margin-top:12px"></div>
+  </div>
 </div>
 
-<section class="card" style="margin-top:18px">
-<h2 style="margin-top:0">Clientes</h2>
-<div id="clients" class="muted">Carregando...</div>
-</section>
+<div id="app" class="app hidden">
+  <aside id="sidebar" class="sidebar">
+    <div class="logoBrand">VJ <span>CONNECT</span></div>
+    <div class="tag">TECNOLOGIA QUE APROXIMA</div>
+    <nav class="nav">
+      <button id="nav-dashboard" onclick="showView('dashboard')">⌂ Dashboard</button>
+      <button id="nav-clients" onclick="showView('clients')">◉ Clientes</button>
+      <button id="nav-editor" onclick="showView('editor')">＋ Novo Cliente</button>
+      <button onclick="showView('editor');switchTab('style')">◈ Personalização</button>
+      <button onclick="showView('editor');switchTab('content')">↗ Links e Ícones</button>
+      <button onclick="showView('editor');switchTab('media')">▣ Mídia e Arquivos</button>
+    </nav>
+    <div class="sideBottom">
+      <div class="plan"><div class="muted">PLANO ATUAL</div><b>Administrador</b><div class="muted" style="margin-top:4px">Clientes ilimitados</div></div>
+      <div class="account"><div class="avatar" id="avatar">J</div><div><b>Administrador</b><small id="accountEmail">—</small></div></div>
+      <button class="btn" style="width:100%;margin-top:12px" onclick="logout()">Sair</button>
+    </div>
+  </aside>
+
+  <section class="main">
+    <header class="topbar">
+      <div style="display:flex;gap:10px;align-items:center"><button class="btn menuBtn" onclick="toggleSidebar()">☰</button><div><div class="crumb">VJ CONNECT / ADMIN</div><div class="topTitle" id="pageTitle">Dashboard</div></div></div>
+      <div class="topActions"><button class="btn" onclick="showView('clients')">Clientes</button><button class="btn primary" onclick="newClient();showView('editor')">+ Criar página</button></div>
+    </header>
+
+    <main class="content">
+      <section id="view-dashboard" class="view">
+        <div class="hero"><div><h1>Seu painel de páginas</h1><p>Crie, personalize e entregue páginas independentes para cada cliente.</p></div><button class="btn primary" onclick="newClient();showView('editor')">Criar nova página</button></div>
+        <div class="cards">
+          <div class="stat"><small>CLIENTES</small><strong id="statClients">0</strong></div>
+          <div class="stat"><small>PUBLICADOS</small><strong id="statPublished">0</strong></div>
+          <div class="stat"><small>RASCUNHO LOCAL</small><strong id="statDraft">—</strong></div>
+        </div>
+        <div class="card" style="margin-top:14px"><div class="sectionTitle">Últimos clientes</div><div id="dashList"></div></div>
+      </section>
+
+      <section id="view-clients" class="view">
+        <div class="hero"><div><h1>Clientes</h1><p>Suas páginas ficam salvas no Supabase e continuam disponíveis quando você sair e entrar novamente.</p></div><button class="btn primary" onclick="newClient();showView('editor')">+ Novo cliente</button></div>
+        <div class="card"><div class="table" id="clientsList"><div class="empty">Carregando clientes...</div></div></div>
+      </section>
+
+      <section id="view-editor" class="view">
+        <div class="hero">
+          <div><h1 id="formTitle">Criar / Editar Cliente</h1><p>Personalize todos os elementos e veja a prévia em tempo real.</p></div>
+          <div class="topActions"><button class="btn" onclick="openPublic()">Abrir página</button><button class="btn" onclick="copyURL()">Copiar URL</button><button class="btn primary" onclick="saveClient()">Salvar Cliente</button></div>
+        </div>
+
+        <div class="editor">
+          <div class="editorCard">
+            <div class="tabs">
+              <button id="tab-content" class="tab active" onclick="switchTab('content')">Conteúdo</button>
+              <button id="tab-style" class="tab" onclick="switchTab('style')">Estilo</button>
+              <button id="tab-media" class="tab" onclick="switchTab('media')">Banners</button>
+              <button id="tab-advanced" class="tab" onclick="switchTab('advanced')">Avançado</button>
+            </div>
+
+            <div id="pane-content" class="tabPane active">
+              <div class="sectionTitle">1. Informações da Empresa</div>
+              <div class="grid2">
+                <div class="field"><label>Nome da Empresa</label><input id="name" placeholder="Ex.: Prime Burger" oninput="onEdit()"></div>
+                <div class="field"><label>Slug / URL exclusiva</label><input id="slug" placeholder="prime-burger" oninput="onEdit()"><div class="muted">A página ficará em /c/seu-slug</div></div>
+              </div>
+              <div class="field"><label>Descrição</label><textarea id="bio" placeholder="Uma frase sobre a empresa" oninput="onEdit()"></textarea></div>
+              <div class="grid2">
+                <div class="field"><label>Selo opcional</label><input id="verifyText" placeholder="Verificado"><div class="muted">Deixe vazio para não mostrar.</div></div>
+                <div class="field"><label>Publicação</label><select id="published" onchange="onEdit()"><option value="true">Publicado</option><option value="false">Rascunho</option></select></div>
+              </div>
+
+              <div class="sectionTitle" style="margin-top:22px">2. Links e Botões</div>
+              <div id="links" class="links"></div>
+              <div class="addLinks">
+                <button class="btn" onclick="addLink('whatsapp')">+ WhatsApp</button>
+                <button class="btn" onclick="addLink('instagram')">+ Instagram</button>
+                <button class="btn" onclick="addLink('google')">+ Google</button>
+                <button class="btn" onclick="addLink('maps')">+ Maps</button>
+                <button class="btn" onclick="addLink('tiktok')">+ TikTok</button>
+                <button class="btn" onclick="addLink('facebook')">+ Facebook</button>
+                <button class="btn" onclick="addLink('youtube')">+ YouTube</button>
+                <button class="btn" onclick="addLink('link')">+ Link</button>
+              </div>
+              <div class="muted" style="margin-top:8px">Cada link possui sua própria lixeira. O que você apagar aqui não volta sozinho.</div>
+            </div>
+
+            <div id="pane-style" class="tabPane">
+              <div class="sectionTitle">Personalização completa</div>
+              <div class="colorRow">
+                <div class="field"><label>Cor principal do fundo</label><div class="colorBox"><input id="bg" type="color" oninput="onEdit()"><span id="bgHex"></span></div></div>
+                <div class="field"><label>Segunda cor do fundo</label><div class="colorBox"><input id="bg2" type="color" oninput="onEdit()"><span id="bg2Hex"></span></div></div>
+              </div>
+              <div class="colorRow">
+                <div class="field"><label>Cor do texto</label><div class="colorBox"><input id="text" type="color" oninput="onEdit()"><span id="textHex"></span></div></div>
+                <div class="field"><label>Cor de destaque</label><div class="colorBox"><input id="accent" type="color" oninput="onEdit()"><span id="accentHex"></span></div></div>
+              </div>
+              <div class="colorRow">
+                <div class="field"><label>Cor dos botões</label><div class="colorBox"><input id="button" type="color" oninput="onEdit()"><span id="buttonHex"></span></div></div>
+                <div class="field"><label>Texto dos botões</label><div class="colorBox"><input id="buttonText" type="color" oninput="onEdit()"><span id="buttonTextHex"></span></div></div>
+              </div>
+              <div class="grid2">
+                <div class="field"><label>Fundo</label><select id="bgMode" onchange="onEdit()"><option value="solid">Cor sólida</option><option value="gradient">Degradê</option></select></div>
+                <div class="field"><label>Direção do degradê</label><select id="gradientDir" onchange="onEdit()"><option value="135deg">Diagonal ↘</option><option value="90deg">Vertical ↓</option><option value="0deg">Horizontal →</option><option value="45deg">Diagonal ↗</option><option value="180deg">Vertical ↑</option></select></div>
+              </div>
+              <div class="grid2">
+                <div class="field"><label>Estilo dos botões</label><select id="buttonStyle" onchange="onEdit()"><option value="solid">Sólido</option><option value="gradient">Degradê</option><option value="outline">Contorno</option></select></div>
+                <div class="field"><label>Raio dos botões</label><input id="buttonRadius" type="range" min="0" max="30" oninput="onEdit()"><div class="muted"><span id="radiusValue"></span> px</div></div>
+              </div>
+            </div>
+
+            <div id="pane-media" class="tabPane">
+              <div class="sectionTitle">Logo e Banner</div>
+              <div class="media">
+                <div class="mediaBox">
+                  <label>Logo (redonda recomendada)</label>
+                  <img id="logoPreview" class="logoPreview" alt="Logo">
+                  <input id="logoFile" type="file" accept="image/*" onchange="uploadImage('logo',this)">
+                  <input id="logo" class="hidden">
+                  <button class="btn danger" style="margin-top:8px" onclick="removeImage('logo')">Remover logo</button>
+                </div>
+                <div class="mediaBox">
+                  <label>Banner</label>
+                  <img id="bannerPreview" alt="Banner">
+                  <input id="bannerFile" type="file" accept="image/*" onchange="uploadImage('banner',this)">
+                  <input id="banner" class="hidden">
+                  <button class="btn danger" style="margin-top:8px" onclick="removeImage('banner')">Remover banner</button>
+                </div>
+              </div>
+              <div class="field" style="margin-top:14px"><label>Ou cole a URL da logo</label><input id="logoUrl" placeholder="https://..." oninput="setImageURL('logo',this.value)"></div>
+              <div class="field"><label>Ou cole a URL do banner</label><input id="bannerUrl" placeholder="https://..." oninput="setImageURL('banner',this.value)"></div>
+              <div class="muted">Uploads usam o bucket client-assets do Supabase. Limite recomendado: 5 MB por imagem.</div>
+            </div>
+
+            <div id="pane-advanced" class="tabPane">
+              <div class="sectionTitle">Avançado</div>
+              <div class="field"><label>Slug</label><input id="slugAdvanced" readonly></div>
+              <div class="field"><label>URL pública</label><input id="publicUrlField" readonly></div>
+              <div class="row">
+                <button class="btn" onclick="copyURL()">Copiar URL</button>
+                <button class="btn" onclick="openPublic()">Abrir em nova aba</button>
+                <button class="btn danger" onclick="deleteCurrent()">Excluir cliente</button>
+              </div>
+              <div class="card" style="margin-top:14px;background:#0b0b0b"><b>Rascunho automático</b><div class="muted" style="margin-top:5px">O editor salva uma cópia local enquanto você trabalha. Se trocar de aba ou recarregar, o conteúdo volta. O banco continua sendo a fonte oficial depois de salvar.</div></div>
+            </div>
+          </div>
+
+          <div class="previewWrap">
+            <div class="deviceBar">
+              <button id="device-mobile" class="device active" onclick="setDevice('mobile')">Mobile</button>
+              <button id="device-tablet" class="device" onclick="setDevice('tablet')">Tablet</button>
+              <button id="device-desktop" class="device" onclick="setDevice('desktop')">Desktop</button>
+            </div>
+            <div class="phone"><div id="preview" class="screen"></div></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </section>
 </div>
+
+<div id="toast" class="toast hidden"></div>
 
 <script>
 const SUPABASE_URL=window.VJ_SUPABASE?.url||"";
@@ -74,348 +217,442 @@ const icons={
  link:"https://cdn.simpleicons.org/link"
 };
 
-let currentId=null;
-let linksState=[];
+const DEFAULT={
+ name:"",slug:"",bio:"Tecnologia que aproxima",logo:"",banner:"",
+ verifyText:"",published:true,
+ bg:"#f5efe4",bg2:"#e8dcc6",text:"#171717",button:"#151515",buttonText:"#ffffff",accent:"#d8b45d",
+ bgMode:"solid",gradientDir:"135deg",buttonStyle:"solid",buttonRadius:15,
+ links:[
+  {label:"WhatsApp",url:"",icon:"whatsapp",enabled:true},
+  {label:"Instagram",url:"",icon:"instagram",enabled:true},
+  {label:"Como chegar",url:"",icon:"maps",enabled:true}
+ ]
+};
+
+let state=structuredClone(DEFAULT),currentId=null,clients=[],activeView="dashboard",activeTab="content",device="mobile",draftTimer=null;
+
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
-const normalizeUrl=v=>{const s=String(v||"").trim();if(!s)return "";return /^https?:\/\//i.test(s)?s:"https://"+s};
+const clone=o=>JSON.parse(JSON.stringify(o));
+const slugify=v=>String(v||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+const publicURL=slug=>new URL("../c/"+encodeURIComponent(slug),location.href).href;
+const notify=t=>{const x=$("toast");x.textContent=t;x.classList.remove("hidden");clearTimeout(notify.t);notify.t=setTimeout(()=>x.classList.add("hidden"),3200)};
 
-async function init(){
- if(!db){showLoginError("Supabase não configurado. Verifique admin/config.js.");return;}
- const {data,error}=await db.auth.getSession();
- if(error){showLoginError(error.message);return;}
- if(data.session) await showApp(data.session);
- else $("login").classList.remove("hidden");
-
- db.auth.onAuthStateChange(async (_event,session)=>{
-   if(session) await showApp(session);
-   else{
-     $("app").classList.add("hidden");
-     $("login").classList.remove("hidden");
-     $("accountEmail").textContent="";
-   }
- });
+function applyStateToForm(){
+ $("name").value=state.name||"";
+ $("slug").value=state.slug||"";
+ $("slugAdvanced").value=state.slug||"";
+ $("bio").value=state.bio||"";
+ $("verifyText").value=state.verifyText||"";
+ $("published").value=String(state.published!==false);
+ $("logo").value=state.logo||"";
+ $("banner").value=state.banner||"";
+ $("logoUrl").value=state.logo||"";
+ $("bannerUrl").value=state.banner||"";
+ ["bg","bg2","text","button","buttonText","accent"].forEach(k=>$(k).value=state[k]);
+ $("bgMode").value=state.bgMode||"solid";
+ $("gradientDir").value=state.gradientDir||"135deg";
+ $("buttonStyle").value=state.buttonStyle||"solid";
+ $("buttonRadius").value=state.buttonRadius??15;
+ $("radiusValue").textContent=state.buttonRadius??15;
+ ["bg","bg2","text","button","buttonText","accent"].forEach(k=>$(k+"Hex").textContent=$(k).value);
+ $("publicUrlField").value=state.slug?publicURL(state.slug):"";
+ renderLinks();
+ render();
 }
 
-function showLoginError(text){
- $("loginStatus").textContent=text;
- $("loginStatus").classList.remove("hidden");
+function readForm(){
+ state.name=$("name").value;
+ state.slug=slugify($("slug").value||$("name").value);
+ state.bio=$("bio").value;
+ state.verifyText=$("verifyText").value;
+ state.published=$("published").value==="true";
+ ["bg","bg2","text","button","buttonText","accent","bgMode","gradientDir","buttonStyle","buttonRadius"].forEach(k=>state[k]=$(k).value);
+ state.buttonRadius=Number(state.buttonRadius||15);
+ state.slug=slugify(state.slug);
+ $("slug").value=state.slug;
+ $("slugAdvanced").value=state.slug;
+ $("publicUrlField").value=state.slug?publicURL(state.slug):"";
+ ["bg","bg2","text","button","buttonText","accent"].forEach(k=>$(k+"Hex").textContent=$(k).value);
 }
 
-async function login(){
- $("loginStatus").classList.add("hidden");
- if(!db){showLoginError("Supabase não configurado.");return;}
- const email=$("email").value.trim();
- const password=$("password").value;
- if(!email||!password){showLoginError("Informe e-mail e senha.");return;}
- const {data,error}=await db.auth.signInWithPassword({email,password});
- if(error){showLoginError(error.message);return;}
- if(!data?.session){showLoginError("O Supabase não retornou uma sessão.");return;}
- await showApp(data.session);
+function persistDraft(){
+ try{localStorage.setItem("vjconnect_editor_draft",JSON.stringify({state,currentId}));$("statDraft").textContent="Salvo";}catch(e){}
 }
 
-async function logout(){
- if(db) await db.auth.signOut();
+function restoreDraft(){
+ try{
+  const raw=localStorage.getItem("vjconnect_editor_draft");
+  if(!raw)return false;
+  const d=JSON.parse(raw);
+  if(!d?.state)return false;
+  state={...clone(DEFAULT),...d.state,links:Array.isArray(d.state.links)?d.state.links:clone(DEFAULT.links)};
+  currentId=d.currentId||null;
+  return true;
+ }catch(e){return false}
 }
 
-async function showApp(session){
- $("login").classList.add("hidden");
- $("app").classList.remove("hidden");
- $("accountEmail").textContent=session?.user?.email||"";
- if(!currentId) newClient();
- await loadClients();
+function clearDraft(){
+ localStorage.removeItem("vjconnect_editor_draft");
+ $("statDraft").textContent="—";
+}
+
+function onEdit(){
+ readForm();
+ render();
+ clearTimeout(draftTimer);draftTimer=setTimeout(persistDraft,150);
 }
 
 function newClient(){
  currentId=null;
- $("formTitle").textContent="Criar cliente";
- $("name").value="";
- $("slug").value="";
- $("bio").value="Tecnologia que aproxima";
- $("logo").value="";
- $("banner").value="";
- if($("logoFile"))$("logoFile").value="";
- if($("bannerFile"))$("bannerFile").value="";
- $("bg").value="#f5efe4";
- $("bg2").value="#e8dcc6";
- $("text").value="#171717";
- $("button").value="#151515";
- $("buttonText").value="#ffffff";
- $("accent").value="#d8b45d";
- $("bgMode").value="solid";
- $("gradientDir").value="135deg";
- $("buttonStyle").value="solid";
- linksState=[
-  {label:"Instagram",url:"",icon:"instagram"},
-  {label:"WhatsApp",url:"",icon:"whatsapp"},
-  {label:"Como chegar",url:"",icon:"maps"}
- ];
- render();
- setStatus("");
+ state=clone(DEFAULT);
+ state.links=clone(DEFAULT.links);
+ applyStateToForm();
+ clearDraft();
+ switchTab("content");
+ notify("Novo cliente pronto.");
 }
 
 function addLink(icon){
- linksState.push({
-  label:icon==="maps"?"Como chegar":icon==="whatsapp"?"WhatsApp":icon==="instagram"?"Instagram":icon==="google"?"Google":"Novo link",
-  url:"",
-  icon
- });
- render();
+ const labels={maps:"Localização",whatsapp:"WhatsApp",instagram:"Instagram",google:"Google",tiktok:"TikTok",facebook:"Facebook",youtube:"YouTube",link:"Novo link"};
+ state.links.push({label:labels[icon]||"Novo link",url:"",icon,enabled:true});
+ renderLinks();render();persistDraft();
 }
 
 function removeLink(i){
- linksState.splice(i,1);
+ if(!state.links[i])return;
+ const label=state.links[i].label||"este link";
+ if(!confirm('Apagar "'+label+'"?'))return;
+ state.links.splice(i,1);
+ renderLinks();render();persistDraft();
+}
+
+function updateLink(i,key,value){
+ if(!state.links[i])return;
+ state.links[i][key]=value;
  render();
+ persistDraft();
 }
 
-function updateLink(i,k,v){
- if(!linksState[i])return;
- linksState[i][k]=v;
+function toggleLink(i){
+ if(!state.links[i])return;
+ state.links[i].enabled=state.links[i].enabled!==false?false:true;
  render();
+ persistDraft();
 }
 
-function theme(){
- return {
-  bg:$("bg").value,
-  bg2:$("bg2").value,
-  text:$("text").value,
-  button:$("button").value,
-  buttonText:$("buttonText").value,
-  accent:$("accent").value,
-  bgMode:$("bgMode").value,
-  gradientDir:$("gradientDir").value,
-  buttonStyle:$("buttonStyle").value
- };
+function moveLink(i,dir){
+ const j=i+dir;
+ if(j<0||j>=state.links.length)return;
+ [state.links[i],state.links[j]]=[state.links[j],state.links[i]];
+ renderLinks();render();persistDraft();
 }
 
-function slugify(v){
- return String(v||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"")
-  .toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
-}
-
-function render(){
- const c={
-  name:$("name").value,
-  bio:$("bio").value,
-  logo:$("logo").value,
-  banner:$("banner").value,
-  ...theme(),
-  links:linksState
- };
- const bg=c.bgMode==="gradient"
-  ?`linear-gradient(${c.gradientDir},${c.bg},${c.bg2})`
-  :c.bg;
- const btn=c.buttonStyle==="gradient"
-  ?`linear-gradient(135deg,${c.button},${c.accent})`
-  :c.buttonStyle==="outline"?"transparent":c.button;
- const border=c.buttonStyle==="outline"
-  ?`2px solid ${c.accent}`
-  :"1px solid transparent";
-
- $("links").innerHTML=linksState.map((x,i)=>`
+function renderLinks(){
+ $("links").innerHTML=state.links.map((x,i)=>`
   <div class="linkrow">
+   <div class="drag">☷</div>
    <select onchange="updateLink(${i},'icon',this.value)">
     ${Object.keys(icons).map(k=>`<option value="${k}" ${x.icon===k?"selected":""}>${k}</option>`).join("")}
    </select>
-   <input value="${esc(x.label)}" placeholder="Nome" oninput="updateLink(${i},'label',this.value)">
-   <input class="wide" value="${esc(x.url)}" placeholder="https://..." oninput="updateLink(${i},'url',this.value)">
-   <button class="btn danger" title="Apagar este link" aria-label="Apagar este link" onclick="removeLink(${i})">🗑</button>
-  </div>`).join("");
+   <input value="${esc(x.label)}" placeholder="Texto do botão" oninput="updateLink(${i},'label',this.value)">
+   <input class="url" value="${esc(x.url)}" placeholder="https://..." oninput="updateLink(${i},'url',this.value)">
+   <div class="row">
+    <button class="btn icon" title="Mover para cima" onclick="moveLink(${i},-1)">↑</button>
+    <button class="btn icon" title="Mover para baixo" onclick="moveLink(${i},1)">↓</button>
+    <button class="trash" title="Apagar link" aria-label="Apagar link" onclick="removeLink(${i})">🗑</button>
+   </div>
+  </div>`).join("")||'<div class="empty">Nenhum link. Use os botões abaixo para adicionar.</div>';
+}
 
- $("preview").style.background=bg;
- $("preview").style.color=c.text;
- $("preview").innerHTML=`
-  ${c.banner?`<div class="banner" style="background-image:url('${esc(c.banner)}')"></div>`:`<div class="banner"></div>`}
-  ${c.logo?`<img class="logo" src="${esc(c.logo)}">`:""}
-  <div class="name">${esc(c.name||"Nome da empresa")}</div>
-  <div class="bio" style="opacity:.65">${esc(c.bio)}</div>
-  ${linksState.map(x=>`<a class="plink" style="background:${btn};border:${border};color:${c.buttonText}" href="#" onclick="event.preventDefault()"><img src="${icons[x.icon]||icons.link}">${esc(x.label||"Link")}</a>`).join("")}
-  <div style="text-align:center;font-size:9px;letter-spacing:.12em;opacity:.5;margin-top:20px">TECNOLOGIA QUE APROXIMA</div>`;
+function switchTab(tab){
+ activeTab=tab;
+ ["content","style","media","advanced"].forEach(x=>{
+  $("tab-"+x).classList.toggle("active",x===tab);
+  $("pane-"+x).classList.toggle("active",x===tab);
+ });
+}
+
+function showView(view){
+ activeView=view;
+ const titles={dashboard:"Dashboard",clients:"Clientes",editor:currentId?"Editar Cliente":"Criar Cliente"};
+ ["dashboard","clients","editor"].forEach(x=>$("view-"+x).classList.toggle("active",x===view));
+ ["dashboard","clients","editor"].forEach(x=>$("nav-"+x)?.classList.toggle("active",x===view));
+ $("pageTitle").textContent=titles[view]||"VJ CONNECT";
+ $("sidebar").classList.remove("open");
+ if(view==="clients")loadClients();
+ if(view==="dashboard")renderDashboard();
+ if(view==="editor"){applyStateToForm();render()}
+}
+
+function toggleSidebar(){$("sidebar").classList.toggle("open")}
+
+function setDevice(d){
+ device=d;
+ ["mobile","tablet","desktop"].forEach(x=>$("device-"+x).classList.toggle("active",x===d));
+ const screen=$("preview");
+ screen.style.width=d==="mobile"?"390px":d==="tablet"?"520px":"100%";
+ screen.style.maxWidth="100%";
+ screen.style.borderRadius=d==="desktop"?"14px":"32px";
+ render();
+}
+
+function visual(){
+ const bg=state.bgMode==="gradient"
+  ?`linear-gradient(${state.gradientDir},${state.bg},${state.bg2})`
+  :state.bg;
+ const button=state.buttonStyle==="gradient"
+  ?`linear-gradient(135deg,${state.button},${state.accent})`
+  :state.buttonStyle==="outline"?"transparent":state.button;
+ const border=state.buttonStyle==="outline"?`2px solid ${state.accent}`:"1px solid transparent";
+ return {bg,button,border};
+}
+
+function pageContent(){
+ const v=visual();
+ const links=state.links.filter(x=>x.enabled!==false && String(x.url||"").trim());
+ return `<div class="clientPage" style="background:${v.bg};color:${state.text}">
+  ${state.banner?`<div class="banner" style="background-image:url('${esc(state.banner)}')"></div>`:`<div class="banner"></div>`}
+  ${state.logo?`<img class="logoImg" src="${esc(state.logo)}" alt="Logo">`:""}
+  <div class="name">${esc(state.name||"Nome da empresa")}</div>
+  ${state.verifyText?`<div class="verify">✓ ${esc(state.verifyText)}</div>`:""}
+  <div class="bio" style="opacity:.68">${esc(state.bio||"")}</div>
+  ${links.map(x=>`<a class="pLink" style="background:${v.button};border:${v.border};color:${state.buttonText};border-radius:${Number(state.buttonRadius||15)}px" href="${esc(normalizeUrl(x.url))}" target="_blank" rel="noopener noreferrer"><img src="${icons[x.icon]||icons.link}" alt="">${esc(x.label||"Link")}</a>`).join("")}
+  <div class="footer">VJ CONNECT · TECNOLOGIA QUE APROXIMA</div>
+ </div>`;
+}
+
+function normalizeUrl(v){
+ const s=String(v||"").trim();
+ if(!s)return "#";
+ return /^https?:\/\//i.test(s)?s:"https://"+s;
+}
+
+function render(){
+ const v=visual();
+ $("preview").innerHTML=pageContent();
+ $("preview").style.background=v.bg;
+ $("preview").style.color=state.text;
+}
+
+function removeImage(kind){
+ state[kind]="";
+ $(kind).value="";
+ $(kind+"Url").value="";
+ renderMedia();
+ render();
+ persistDraft();
+}
+
+function setImageURL(kind,value){
+ state[kind]=value.trim();
+ renderMedia();
+ render();
+ persistDraft();
+}
+
+function renderMedia(){
+ const lp=$("logoPreview"),bp=$("bannerPreview");
+ lp.src=state.logo||"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='300'%3E%3Crect width='100%25' height='100%25' fill='%23181818'/%3E%3Ctext x='50%25' y='52%25' fill='%23777' font-size='26' text-anchor='middle'%3ELOGO%3C/text%3E%3C/svg%3E";
+ bp.src=state.banner||"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='400'%3E%3Crect width='100%25' height='100%25' fill='%23181818'/%3E%3Ctext x='50%25' y='52%25' fill='%23777' font-size='26' text-anchor='middle'%3EBANNER%3C/text%3E%3C/svg%3E";
+}
+
+async function uploadImage(kind,input){
+ const file=input.files?.[0];
+ if(!file)return;
+ if(!file.type.startsWith("image/")){notify("Escolha uma imagem.");input.value="";return}
+ if(file.size>5*1024*1024){notify("A imagem deve ter no máximo 5 MB.");input.value="";return}
+ if(!db){notify("Supabase não configurado.");return}
+ notify("Enviando imagem...");
+ const ext=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"")||"jpg";
+ const path=`${crypto.randomUUID()}.${ext}`;
+ const up=await db.storage.from("client-assets").upload(path,file,{upsert:false,contentType:file.type});
+ if(up.error){notify("Upload: "+up.error.message);input.value="";return}
+ state[kind]=db.storage.from("client-assets").getPublicUrl(path).data.publicUrl;
+ $(""+kind+"Url").value=state[kind];
+ renderMedia();render();persistDraft();input.value="";
+ notify("Imagem enviada.");
 }
 
 function payload(){
- const slug=slugify($("slug").value||$("name").value);
- $("slug").value=slug;
+ readForm();
  return {
-  slug,
-  name:$("name").value.trim(),
-  bio:$("bio").value.trim(),
-  logo_url:$("logo").value.trim()||null,
-  banner_url:$("banner").value.trim()||null,
-  theme:theme(),
-  published:true
+  slug:state.slug,name:state.name.trim(),bio:state.bio.trim(),
+  logo_url:state.logo.trim()||null,banner_url:state.banner.trim()||null,
+  theme:{
+   bg:state.bg,bg2:state.bg2,text:state.text,button:state.button,buttonText:state.buttonText,
+   accent:state.accent,bgMode:state.bgMode,gradientDir:state.gradientDir,buttonStyle:state.buttonStyle,
+   buttonRadius:state.buttonRadius,verifyText:state.verifyText
+  },
+  published:state.published
  };
 }
 
 async function saveClient(){
- if(!db){setStatus("Supabase não configurado.");return;}
+ if(!db){notify("Supabase não configurado.");return}
  const p=payload();
- if(!p.name||!p.slug){setStatus("Informe nome e slug.");return;}
-
- setStatus("Salvando cliente...");
+ if(!p.name||!p.slug){notify("Informe nome e slug.");switchTab("content");return}
+ notify("Salvando cliente...");
  let res=currentId
   ?await db.from("clients").update({...p,updated_at:new Date().toISOString()}).eq("id",currentId).select().single()
   :await db.from("clients").insert(p).select().single();
 
- if(res.error){
-  setStatus("Erro ao salvar cliente: "+res.error.message);
-  return;
- }
+ if(res.error){notify("Erro ao salvar: "+res.error.message);return}
+ currentId=res.data.id;
 
- const clientId=res.data.id;
- currentId=clientId;
+ const del=await db.from("client_links").delete().eq("client_id",currentId);
+ if(del.error){notify("Cliente salvo, mas os links não foram atualizados: "+del.error.message);return}
 
- const del=await db.from("client_links").delete().eq("client_id",clientId);
- if(del.error){
-  setStatus("Cliente salvo, mas não consegui atualizar os links: "+del.error.message);
-  await loadClients();
-  return;
- }
-
- const rows=linksState.filter(x=>String(x.url||"").trim()).map((x,i)=>({
-  client_id:clientId,
-  position:i,
-  label:String(x.label||"Link").trim()||"Link",
-  url:normalizeUrl(x.url),
-  icon_key:x.icon||"link",
-  icon_url:x.icon_url||null,
-  enabled:true
+ const rows=state.links.filter(x=>String(x.url||"").trim()).map((x,i)=>({
+  client_id:currentId,position:i,label:String(x.label||"Link").trim()||"Link",
+  url:normalizeUrl(x.url),icon_key:x.icon||"link",icon_url:null,enabled:x.enabled!==false
  }));
-
  if(rows.length){
   const lr=await db.from("client_links").insert(rows);
-  if(lr.error){
-   setStatus("Cliente salvo, mas houve erro nos links: "+lr.error.message);
-   await loadClients();
-   return;
-  }
+  if(lr.error){notify("Cliente salvo, mas houve erro nos links: "+lr.error.message);return}
  }
-
- setStatus("✓ Cliente salvo. URL: "+publicURL(p.slug));
+ persistDraft();
+ $("formTitle").textContent="Editar Cliente";
+ clearDraft();
+ notify("✓ Cliente salvo. URL: "+publicURL(p.slug));
  await loadClients();
+ showView("editor");
 }
 
 async function loadClients(){
  if(!db)return;
- $("clients").textContent="Carregando...";
- const {data,error}=await db.from("clients")
-  .select("id,slug,name,published,updated_at")
-  .order("created_at",{ascending:false});
+ $("clientsList").innerHTML='<div class="empty">Carregando clientes...</div>';
+ const {data,error}=await db.from("clients").select("id,slug,name,published,updated_at,created_at").order("created_at",{ascending:false});
+ if(error){$("clientsList").innerHTML='<div class="empty">Erro ao carregar: '+esc(error.message)+'</div>';return}
+ clients=data||[];
+ renderClients();
+ renderDashboard();
+}
 
- if(error){
-  $("clients").textContent="Erro ao carregar: "+error.message;
-  return;
- }
- if(!data?.length){
-  $("clients").innerHTML="Nenhum cliente cadastrado.";
-  return;
- }
-
- $("clients").innerHTML=data.map(c=>`
-  <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;border-top:1px solid #252525;padding:12px 0">
-   <div>
-    <b>${esc(c.name)}</b>
-    <div class="muted">${esc(publicURL(c.slug))} · ${c.published?"publicado":"rascunho"}</div>
-   </div>
-   <div class="row">
+function renderClients(){
+ if(!clients.length){$("clientsList").innerHTML='<div class="empty">Nenhum cliente cadastrado.<br><button class="btn primary" style="margin-top:12px" onclick="newClient();showView(\'editor\')">Criar primeiro cliente</button></div>';return}
+ $("clientsList").innerHTML=clients.map(c=>`
+  <div class="clientRow">
+   <div><div class="clientName">${esc(c.name)}</div><div class="clientSlug">${esc(publicURL(c.slug))} · ${c.published?"PUBLICADO":"RASCUNHO"}</div></div>
+   <div class="clientActions">
     <button class="btn" onclick="editClient('${c.id}')">Editar</button>
-    <button class="btn" onclick="window.open(publicURL('${encodeURIComponent(c.slug)}'),'_blank')">Abrir</button>
-    <button class="btn" onclick="copyClientURL('${encodeURIComponent(c.slug)}')">Copiar URL</button>
-    <button class="btn danger" onclick="deleteClient('${c.id}')">Excluir</button>
+    <button class="btn" onclick="window.open('${publicURL(c.slug)}','_blank','noopener')">Abrir</button>
+    <button class="btn" onclick="copyText('${publicURL(c.slug)}')">Copiar URL</button>
+    <button class="btn danger" onclick="deleteClient('${c.id}')">🗑 Excluir</button>
    </div>
+  </div>`).join("");
+}
+
+function renderDashboard(){
+ $("statClients").textContent=clients.length;
+ $("statPublished").textContent=clients.filter(x=>x.published).length;
+ if(!$("dashList"))return;
+ if(!clients.length){$("dashList").innerHTML='<div class="empty">Você ainda não criou clientes.</div>';return}
+ $("dashList").innerHTML=clients.slice(0,5).map(c=>`
+  <div class="clientRow">
+   <div><div class="clientName">${esc(c.name)}</div><div class="clientSlug">${esc(c.slug)}</div></div>
+   <div class="clientActions"><button class="btn" onclick="editClient('${c.id}')">Editar</button><button class="btn" onclick="window.open('${publicURL(c.slug)}','_blank')">Abrir</button></div>
   </div>`).join("");
 }
 
 async function editClient(id){
  if(!db)return;
+ notify("Carregando cliente...");
  const r=await db.from("clients").select("*").eq("id",id).single();
- if(r.error){setStatus("Erro ao abrir cliente: "+r.error.message);return;}
- const c=r.data;
- currentId=c.id;
- $("formTitle").textContent="Editar cliente";
- $("name").value=c.name||"";
- $("slug").value=c.slug||"";
- $("bio").value=c.bio||"";
- $("logo").value=c.logo_url||"";
- $("banner").value=c.banner_url||"";
- const t=c.theme||{};
- for(const k of ["bg","bg2","text","button","buttonText","accent","bgMode","gradientDir","buttonStyle"])
-  if(t[k]!=null)$(k).value=t[k];
-
- const lr=await db.from("client_links")
-  .select("*").eq("client_id",id).order("position",{ascending:true});
- if(lr.error){setStatus("Erro ao carregar links: "+lr.error.message);return;}
- linksState=(lr.data||[]).map(x=>({
-  label:x.label,url:x.url,icon:x.icon_key||"link",icon_url:x.icon_url||""
- }));
- render();
- scrollTo({top:0,behavior:"smooth"});
- setStatus("");
+ if(r.error){notify("Erro: "+r.error.message);return}
+ const c=r.data,t=c.theme||{};
+ state={
+  ...clone(DEFAULT),name:c.name||"",slug:c.slug||"",bio:c.bio||"",
+  logo:c.logo_url||"",banner:c.banner_url||"",published:c.published!==false,
+  bg:t.bg||DEFAULT.bg,bg2:t.bg2||DEFAULT.bg2,text:t.text||DEFAULT.text,button:t.button||DEFAULT.button,
+  buttonText:t.buttonText||DEFAULT.buttonText,accent:t.accent||DEFAULT.accent,bgMode:t.bgMode||DEFAULT.bgMode,
+  gradientDir:t.gradientDir||DEFAULT.gradientDir,buttonStyle:t.buttonStyle||DEFAULT.buttonStyle,
+  buttonRadius:Number(t.buttonRadius??15),verifyText:t.verifyText||"",
+  links:[]
+ };
+ const lr=await db.from("client_links").select("*").eq("client_id",id).order("position",{ascending:true});
+ if(lr.error){notify("Erro nos links: "+lr.error.message);return}
+ state.links=(lr.data||[]).map(x=>({label:x.label,url:x.url,icon:x.icon_key||"link",enabled:x.enabled!==false}));
+ currentId=id;
+ localStorage.setItem("vjconnect_editor_draft",JSON.stringify({state,currentId}));
+ showView("editor");switchTab("content");notify("Cliente carregado.");
 }
 
 async function deleteClient(id){
  if(!db)return;
- if(!confirm("Excluir este cliente e todos os links?"))return;
- setStatus("Excluindo...");
+ const c=clients.find(x=>x.id===id);
+ if(!confirm(`Excluir "${c?.name||"este cliente"}" e todos os links? Esta ação não pode ser desfeita.`))return;
+ notify("Excluindo...");
  const r=await db.from("clients").delete().eq("id",id);
- if(r.error){setStatus("Erro ao excluir: "+r.error.message);return;}
- newClient();
+ if(r.error){notify("Erro ao excluir: "+r.error.message);return}
+ if(currentId===id){currentId=null;newClient()}
  await loadClients();
- setStatus("✓ Cliente excluído.");
+ showView("clients");
+ notify("✓ Cliente excluído.");
 }
 
-function publicURL(slug){
- return new URL("../client/?slug="+encodeURIComponent(slug),location.href).href;
+async function deleteCurrent(){
+ if(!currentId){newClient();return}
+ await deleteClient(currentId);
 }
 
 function openPublic(){
- const s=slugify($("slug").value||$("name").value);
- if(!s){setStatus("Informe o nome do cliente.");return;}
- window.open(publicURL(s),"_blank");
+ readForm();
+ if(!state.slug){notify("Informe o nome/slug primeiro.");return}
+ window.open(publicURL(state.slug),"_blank");
 }
 
-async function copyClientURL(slug){
- const url=publicURL(decodeURIComponent(slug));
- try{
-  await navigator.clipboard.writeText(url);
-  setStatus("✓ URL copiada.");
- }catch(e){
-  setStatus("URL: "+url);
- }
+async function copyText(text){
+ try{await navigator.clipboard.writeText(text);notify("✓ URL copiada.");}
+ catch(e){notify(text)}
 }
 
-async function copyURL(){
- const s=slugify($("slug").value||$("name").value);
- if(!s){setStatus("Informe o nome do cliente.");return;}
- await copyClientURL(encodeURIComponent(s));
+function copyURL(){
+ readForm();
+ if(!state.slug){notify("Informe o nome/slug primeiro.");return}
+ copyText(publicURL(state.slug));
 }
 
-async function uploadImage(kind,input){
- if(!db||!input.files?.[0])return;
- const file=input.files[0];
- if(!file.type.startsWith("image/")){setStatus("Selecione uma imagem.");input.value="";return;}
- if(file.size>5*1024*1024){setStatus("A imagem deve ter no máximo 5 MB.");input.value="";return;}
- setStatus("Enviando imagem...");
- const ext=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"")||"jpg";
- const path=`${crypto.randomUUID()}.${ext}`;
- const up=await db.storage.from("client-assets").upload(path,file,{upsert:false,contentType:file.type});
- if(up.error){
-  setStatus("Erro no upload: "+up.error.message);
-  input.value="";
-  return;
- }
- const pub=db.storage.from("client-assets").getPublicUrl(path);
- $(kind).value=pub.data.publicUrl;
- render();
- setStatus("✓ Imagem enviada.");
- input.value="";
+async function login(){
+ if(!db){$("loginStatus").textContent="Supabase não configurado."; $("loginStatus").classList.remove("hidden");return}
+ const email=$("email").value.trim(),password=$("password").value;
+ if(!email||!password){$("loginStatus").textContent="Informe e-mail e senha."; $("loginStatus").classList.remove("hidden");return}
+ $("loginStatus").textContent="Entrando...";
+ $("loginStatus").classList.remove("hidden");
+ const {data,error}=await db.auth.signInWithPassword({email,password});
+ if(error){$("loginStatus").textContent=error.message;return}
+ if(!data.session){$("loginStatus").textContent="Não foi possível criar a sessão.";return}
+ $("loginStatus").classList.add("hidden");
 }
 
-function setStatus(t){
- $("status").textContent=t;
- $("status").classList.toggle("hidden",!t);
+async function logout(){if(db)await db.auth.signOut()}
+
+async function boot(){
+ if(!db){$("login").classList.remove("hidden");$("loginStatus").textContent="Supabase não configurado.";return}
+ const {data,error}=await db.auth.getSession();
+ if(error){$("login").classList.remove("hidden");$("loginStatus").textContent=error.message;return}
+ if(data.session) await enterApp(data.session); else $("login").classList.remove("hidden");
+ db.auth.onAuthStateChange(async(_event,session)=>{
+  if(session) await enterApp(session);
+  else{$("app").classList.add("hidden");$("login").classList.remove("hidden")}
+ });
 }
 
-init();
+async function enterApp(session){
+ $("login").classList.add("hidden");$("app").classList.remove("hidden");
+ const email=session.user?.email||"";
+ $("accountEmail").textContent=email||"Administrador";
+ $("avatar").textContent=(email[0]||"J").toUpperCase();
+ const restored=restoreDraft();
+ if(restored){
+  applyStateToForm();
+  $("statDraft").textContent="Salvo";
+ }else newClient();
+ await loadClients();
+ showView("dashboard");
+}
+
+boot();
 </script>
-</body></html>
+</body>
+</html>

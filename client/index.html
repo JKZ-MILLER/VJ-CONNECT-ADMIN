@@ -1,30 +1,51 @@
 <!doctype html>
 <html lang="pt-BR">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>VJ CONNECT</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-*{box-sizing:border-box}html,body{margin:0;width:100%;min-height:100%;font-family:Arial,Helvetica,sans-serif;background:#111}body{min-height:100dvh;display:grid;place-items:center;padding:0}
-.page{width:100%;max-width:520px;min-height:100dvh;padding:18px;box-shadow:0 25px 80px #0008;border-radius:0} @media(min-width:560px){body{padding:18px}.page{min-height:calc(100dvh - 36px);border-radius:30px}}
-.banner{height:190px;border-radius:20px;background:#181818 center/cover}.logo{display:block;width:90px;height:90px;border-radius:50%;object-fit:cover;margin:-45px auto 12px;border:4px solid currentColor;background:#222}
-.name{text-align:center;font-size:25px;font-weight:900}.bio{text-align:center;font-size:13px;line-height:1.5;margin:7px 15px 20px}.link{display:flex;align-items:center;justify-content:center;gap:10px;text-decoration:none;padding:15px;border-radius:15px;margin:10px 0;font-weight:800}.link img{width:21px;height:21px}.footer{text-align:center;font-size:9px;letter-spacing:.12em;margin-top:20px;opacity:.5}.msg{color:#fff;text-align:center;padding:30px}
-</style></head>
-<body><main id="app"><div class="msg">Carregando...</div></main>
+*{box-sizing:border-box}html,body{margin:0;width:100%;min-height:100%;font-family:Inter,Arial,sans-serif;background:#090909}
+body{min-height:100dvh}.page{width:100%;min-height:100dvh;padding:18px;display:flex;flex-direction:column}.inner{width:min(520px,100%);margin:0 auto;flex:1}
+.banner{height:220px;border-radius:22px;background:#181818 center/cover}.logo{display:block;width:96px;height:96px;border-radius:50%;object-fit:cover;margin:-48px auto 12px;border:4px solid currentColor;background:#222}.name{text-align:center;font-size:29px;font-weight:950;line-height:1.08}.verify{text-align:center;font-size:11px;font-weight:800;margin:7px 0}.bio{text-align:center;font-size:14px;line-height:1.55;margin:9px 20px 24px}.link{display:flex;align-items:center;justify-content:center;gap:10px;text-decoration:none;padding:16px;margin:11px 0;font-weight:850;transition:transform .15s,filter .15s}.link:hover{transform:translateY(-2px);filter:brightness(1.06)}.link img{width:22px;height:22px}.footer{text-align:center;font-size:8px;letter-spacing:.15em;margin-top:28px;opacity:.45;padding-bottom:10px}.msg{color:#fff;text-align:center;padding:35px}
+@media(min-width:700px){.page{padding:28px}.inner{min-height:calc(100dvh - 56px);padding:0}.banner{height:250px}}
+</style>
+</head>
+<body>
+<main id="app"><div class="msg">Carregando...</div></main>
 <script>
-const SUPABASE_URL="https://dciunhrttojsctdlmfvj.supabase.co";const SUPABASE_KEY="sb_publishable_pH3oQXt64KP-aN9hCqaFrQ_kZ1L6lM8";const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const SUPABASE_URL="https://dciunhrttojsctdlmfvj.supabase.co";
+const SUPABASE_KEY="sb_publishable_pH3oQXt64KP-aN9hCqaFrQ_kZ1L6lM8";
+const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const icons={instagram:"https://cdn.simpleicons.org/instagram",whatsapp:"https://cdn.simpleicons.org/whatsapp",google:"https://cdn.simpleicons.org/google",maps:"https://cdn.simpleicons.org/googlemaps",tiktok:"https://cdn.simpleicons.org/tiktok",facebook:"https://cdn.simpleicons.org/facebook",youtube:"https://cdn.simpleicons.org/youtube",link:"https://cdn.simpleicons.org/link"};
 const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+const normalizeUrl=v=>/^https?:\/\//i.test(String(v||"").trim())?String(v).trim():"https://"+String(v||"").trim();
+
 async function load(){
  const slug=new URLSearchParams(location.search).get("slug");
- if(!slug){document.title="VJ CONNECT";app.innerHTML='<div class="msg">Página não encontrada.</div>';return}
- const c=await db.from("clients").select("*").eq("slug",slug).eq("published",true).single();
- if(c.error){app.innerHTML='<div class="msg">Página não encontrada ou ainda não publicada.</div>';return}
- const l=await db.from("client_links").select("*").eq("client_id",c.data.id).eq("enabled",true).order("position");
- const t=c.data.theme||{};const bg=t.bgMode==="gradient"?`linear-gradient(${t.gradientDir||"135deg"},${t.bg||"#f5efe4"},${t.bg2||"#e8dcc6"})`:t.bg||"#f5efe4";
- const btn=t.buttonStyle==="gradient"?`linear-gradient(135deg,${t.button||"#151515"},${t.accent||"#d8b45d"})`:t.buttonStyle==="outline"?"transparent":t.button||"#151515";
+ if(!slug){app.innerHTML='<div class="msg">Página não encontrada.</div>';return}
+ const r=await db.from("clients").select("*").eq("slug",slug).eq("published",true).single();
+ if(r.error||!r.data){app.innerHTML='<div class="msg">Página não encontrada ou ainda não publicada.</div>';return}
+ const c=r.data,t=c.theme||{};
+ const lr=await db.from("client_links").select("*").eq("client_id",c.id).eq("enabled",true).order("position",{ascending:true});
+ if(lr.error){app.innerHTML='<div class="msg">Não foi possível carregar os links desta página.</div>';return}
+ const bg=t.bgMode==="gradient"?`linear-gradient(${t.gradientDir||"135deg"},${t.bg||"#f5efe4"},${t.bg2||"#e8dcc6"})`:t.bg||"#f5efe4";
+ const button=t.buttonStyle==="gradient"?`linear-gradient(135deg,${t.button||"#151515"},${t.accent||"#d8b45d"})`:t.buttonStyle==="outline"?"transparent":t.button||"#151515";
  const border=t.buttonStyle==="outline"?`2px solid ${t.accent||"#d8b45d"}`:"1px solid transparent";
- document.title=c.data.name+" — VJ CONNECT";
- app.innerHTML=`<div class="page" style="background:${bg};color:${t.text||"#171717"}">${c.data.banner_url?`<div class="banner" style="background-image:url('${esc(c.data.banner_url)}')"></div>`:"<div class=\"banner\"></div>"}${c.data.logo_url?`<img class="logo" src="${esc(c.data.logo_url)}">`:""}<div class="name">${esc(c.data.name)}</div><div class="bio" style="opacity:.65">${esc(c.data.bio||"")}</div>${(l.data||[]).map(x=>`<a class="link" style="background:${btn};border:${border};color:${t.buttonText||"#fff"}" href="${esc(x.url)}" target="_blank" rel="noopener"><img src="${x.icon_url||icons[x.icon_key]||icons.link}">${esc(x.label)}</a>`).join("")}<div class="footer">TECNOLOGIA QUE APROXIMA</div></div>`;
+ const radius=Number(t.buttonRadius??15);
+ document.title=c.name+" — VJ CONNECT";
+ app.innerHTML=`<div class="page" style="background:${bg};color:${t.text||"#171717"}"><div class="inner">
+ ${c.banner_url?`<div class="banner" style="background-image:url('${esc(c.banner_url)}')"></div>`:`<div class="banner"></div>`}
+ ${c.logo_url?`<img class="logo" src="${esc(c.logo_url)}" alt="Logo ${esc(c.name)}">`:""}
+ <div class="name">${esc(c.name)}</div>
+ ${t.verifyText?`<div class="verify">✓ ${esc(t.verifyText)}</div>`:""}
+ <div class="bio" style="opacity:.68">${esc(c.bio||"")}</div>
+ ${(lr.data||[]).map(x=>`<a class="link" style="background:${button};border:${border};color:${t.buttonText||"#fff"};border-radius:${radius}px" href="${esc(normalizeUrl(x.url))}" target="_blank" rel="noopener noreferrer"><img src="${esc(x.icon_url||icons[x.icon_key]||icons.link)}" alt="">${esc(x.label)}</a>`).join("")}
+ <div class="footer">VJ CONNECT · TECNOLOGIA QUE APROXIMA</div>
+ </div></div>`;
 }
 load();
-</script></body></html>
+</script>
+</body>
+</html>

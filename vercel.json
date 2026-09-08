@@ -17,6 +17,10 @@
     {
       "source": "/client/",
       "destination": "/client/index.html"
+    },
+    {
+      "source": "/c/:slug",
+      "destination": "/client/index.html?slug=:slug"
     }
   ]
 }
