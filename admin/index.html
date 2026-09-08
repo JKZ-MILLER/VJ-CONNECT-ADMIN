@@ -6,14 +6,14 @@
 <header class="top"><div class="brand">VJ <span class="gold">CONNECT</span></div><div class="actions"><button class="btn" onclick="logout()">Sair</button></div></header>
 <div id="login" style="max-width:430px;margin:90px auto;padding:25px"><h1>Área restrita</h1><p class="muted">Somente o administrador VJ CONNECT pode criar e editar páginas.</p><label>E-mail</label><input id="email" type="email"><label>Senha</label><input id="password" type="password"><button class="btn primary" style="width:100%;margin-top:15px" onclick="login()">ENTRAR</button><div id="msg" class="notice"></div></div>
 <div id="app" class="layout hidden"><aside class="panel"><h1>Editor do cliente</h1><p class="muted">Crie a página no template mestre. A prévia acompanha cada alteração.</p>
-<div class="section"><label>Nome</label><input id="name" oninput="state.name=this.value;preview()"><label>Descrição</label><input id="bio" oninput="state.bio=this.value;preview()"><label>Logo</label><input id="logo" type="file" accept="image/*" onchange="uploadPreview(this,'logo_url')"><label>Banner</label><input id="banner" type="file" accept="image/*" onchange="uploadPreview(this,'banner_url')"></div>
+<div class="section"><label>Nome</label><input id="name" oninput="state.name=this.value;autoSlug();preview()"><label>Slug / endereço</label><input id="slug" oninput="state.slug=this.value;preview()"><label>Descrição</label><input id="bio" oninput="state.bio=this.value;preview()"><label>Logo</label><input id="logo" type="file" accept="image/*" onchange="uploadPreview(this,'logo_url')"><label>Banner</label><input id="banner" type="file" accept="image/*" onchange="uploadPreview(this,'banner_url')"></div>
 <div class="section"><div style="display:flex;justify-content:space-between;align-items:center"><b>Blocos / links</b><button class="btn" onclick="addLink()">+ Adicionar</button></div><div id="links" class="links"></div></div>
 <div class="section"><label>Cor de destaque</label><input id="accent" type="text" value="#d8b45d" oninput="state.theme.accent=this.value;preview()"><label>Arredondamento</label><select id="radius" onchange="state.theme.radius=this.value;preview()"><option value="12">12px</option><option value="16" selected>16px</option><option value="22">22px</option></select></div>
 <div class="section"><button class="btn primary" style="width:100%" onclick="saveClient()">CRIAR / SALVAR PÁGINA</button><button class="btn" style="width:100%;margin-top:8px" onclick="openClient()">ABRIR PÁGINA DO CLIENTE</button><div id="status" class="muted" style="margin-top:10px"></div></div>
 </aside><main class="stage"><div class="phone"><div id="preview" class="screen"></div></div></main></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script>
 <script>
-let sb=null,currentId=null,state={name:"",bio:"Tecnologia que aproxima",logo_url:"",banner_url:"",theme:{accent:"#d8b45d",radius:"16"},links:[
+let sb=null,currentId=null,state={name:"",bio:"Tecnologia que aproxima",logo_url:"",banner_url:"",slug:"",theme:{accent:"#d8b45d",radius:"16"},links:[
 {label:"Instagram",url:"https://instagram.com/",icon_key:"instagram",icon_url:"",enabled:true},
 {label:"WhatsApp",url:"https://wa.me/",icon_key:"whatsapp",icon_url:"",enabled:true},
 {label:"Google",url:"https://google.com/",icon_key:"google",icon_url:"",enabled:true},
@@ -23,52 +23,74 @@ function safe(s){return String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&
 function preview(){let l=state.links.filter(x=>x.enabled);document.getElementById("preview").innerHTML=`${state.banner_url?`<div class="banner" style="background-image:url('${state.banner_url}')"></div>`:'<div class="banner"></div>'}${state.logo_url?`<img class="plogo" src="${state.logo_url}">`:''}<div class="pname">${safe(state.name||"Nome da empresa")}</div><div class="pbio">${safe(state.bio)}</div>${l.map(x=>`<a class="plink" href="${safe(x.url)}" target="_blank"><img src="${x.icon_url||icons[x.icon_key]||icons.link}">${safe(x.label)}</a>`).join("")}<div class="tag">VJ CONNECT · TECNOLOGIA QUE APROXIMA</div>`}
 function drawLinks(){document.getElementById("links").innerHTML=state.links.map((l,i)=>`<div class="link"><img src="${l.icon_url||icons[l.icon_key]||icons.link}"><input value="${safe(l.label)}" oninput="state.links[${i}].label=this.value;preview()"><input value="${safe(l.url)}" oninput="state.links[${i}].url=this.value;preview()"><button class="btn mini danger" onclick="state.links.splice(${i},1);drawLinks();preview()">×</button></div>`).join("");preview()}
 function addLink(){state.links.push({label:"Novo link",url:"#",icon_key:"link",icon_url:"",enabled:true});drawLinks()}
-async function login(){
-  if(!sb)return msg("Configure admin/config.js primeiro.");
-  const emailValue=document.getElementById("email").value.trim();
-  const passwordValue=document.getElementById("password").value;
-  if(!emailValue||!passwordValue)return msg("Informe e-mail e senha.");
-
-  const {data,error}=await sb.auth.signInWithPassword({
-    email:emailValue,
-    password:passwordValue
-  });
-
-  if(error)return msg(error.message);
-  if(!data?.session)return msg("Não foi possível iniciar uma sessão autenticada.");
-
-  document.getElementById("login").classList.add("hidden");
-  document.getElementById("app").classList.remove("hidden");
-  document.querySelector(".actions button").classList.remove("hidden");
-  drawLinks();
-}
+async function login(){if(!sb)return msg("Supabase não configurado. Verifique admin/config.js.");const {error}=await sb.auth.signInWithPassword({email:email.value,password:password.value});if(error)return msg(error.message);await boot()}
 async function logout(){if(sb)await sb.auth.signOut();location.reload()}
 function msg(x){document.getElementById("msg").textContent=x}
 async function boot(){
-  if(!sb)return;
   document.getElementById("login").classList.remove("hidden");
   document.getElementById("app").classList.add("hidden");
-  document.querySelector(".actions button").classList.add("hidden");
-  document.getElementById("email").focus();
 }
 async function uploadPreview(input,key){let f=input.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{state[key]=r.result;preview()};r.readAsDataURL(f)}
-function slug(x){return x.toLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"cliente"}
+function slug(x){
+  return String(x||"").toLowerCase().normalize("NFD")
+    .replace(/[\\u0300-\\u036f]/g,"")
+    .replace(/[^a-z0-9]+/g,"-")
+    .replace(/^-+|-+$/g,"") || "";
+}
+function autoSlug(){
+  if(!state.slug || state.slug===slug(state.name)){
+    state.slug=slug(state.name);
+    const el=document.getElementById("slug");
+    if(el)el.value=state.slug;
+  }
+}
 async function saveClient(){
-if(!sb)return msg("Configure o Supabase antes de salvar.");if(!state.name.trim())return msg("Digite o nome da empresa.");
-// Nesta primeira implementação, imagens são mantidas como prévia local. Para produção, envie-as ao Storage e salve as URLs.
-let base={slug:slug(state.name)+"-"+Date.now().toString(36),name:state.name,bio:state.bio,logo_url:state.logo_url,banner_url:state.banner_url,theme:state.theme,published:true};
-let {data:c,error}=await sb.from("clients").insert(base).select().single();if(error)return msg(error.message);
-currentId=c.id;let rows=state.links.map((x,i)=>({client_id:c.id,position:i,label:x.label,url:x.url,icon_key:x.icon_key,icon_url:x.icon_url,enabled:x.enabled}));
-let {error:e}=await sb.from("client_links").insert(rows);if(e)return msg(e.message);
-document.getElementById("status").textContent="Página criada: client/index.html?slug="+c.slug;
-window.open("../client/index.html?slug="+encodeURIComponent(c.slug),"_blank")
+  if(!sb)return msg("Supabase não configurado. Verifique admin/config.js.");
+  const name=state.name.trim();
+  const clientSlug=slug(state.slug||name);
+  if(!name)return msg("Digite o nome da empresa.");
+  if(!clientSlug)return msg("Informe nome e slug.");
+
+  const base={
+    slug:clientSlug,
+    name,
+    bio:state.bio||"",
+    logo_url:state.logo_url||"",
+    banner_url:state.banner_url||"",
+    theme:state.theme||{},
+    published:true
+  };
+
+  const {data:c,error}=await sb.from("clients").insert(base).select().single();
+  if(error){
+    console.error(error);
+    return msg("Erro ao salvar cliente: "+error.message);
+  }
+
+  currentId=c.id;
+  const rows=state.links.map((x,i)=>({
+    client_id:c.id,
+    position:i,
+    label:x.label||"Link",
+    url:x.url||"#",
+    icon_key:x.icon_key||"link",
+    icon_url:x.icon_url||"",
+    enabled:x.enabled!==false
+  }));
+
+  if(rows.length){
+    const {error:e2}=await sb.from("client_links").insert(rows);
+    if(e2){
+      console.error(e2);
+      await sb.from("clients").delete().eq("id",c.id);
+      return msg("Cliente não foi criado porque os links falharam: "+e2.message);
+    }
+  }
+
+  document.getElementById("status").textContent=
+    "Página criada com sucesso: ../client/index.html?slug="+encodeURIComponent(c.slug);
+  window.open("../client/index.html?slug="+encodeURIComponent(c.slug),"_blank");
 }
 function openClient(){if(!currentId)return msg("Salve/crie a página primeiro.");}
-(async()=>{
-  if(window.VJ_SUPABASE?.url&&window.VJ_SUPABASE?.anonKey){
-    sb=supabase.createClient(window.VJ_SUPABASE.url,window.VJ_SUPABASE.anonKey);
-    await sb.auth.signOut({scope:"local"});
-  }
-  await boot();
-})();
+(async()=>{if(window.VJ_SUPABASE?.url&&window.VJ_SUPABASE?.anonKey)sb=supabase.createClient(VJ_SUPABASE.url,VJ_SUPABASE.anonKey);await boot()})();
 </script></body></html>
