@@ -20,15 +20,15 @@
 </div></div>
 
 <div id="app" class="wrap hidden">
-<div class="top"><div class="brand">VJ CONNECT <span style="opacity:.4">/ ADMIN</span></div><div class="row"><button class="btn" onclick="newClient()">+ Novo cliente</button><button class="btn" onclick="logout()">Sair</button></div></div>
+<div class="top"><div class="brand">VJ CONNECT <span style="opacity:.4">/ ADMIN</span></div><div class="row"><span id="accountEmail" class="muted"></span><button class="btn" onclick="newClient()">+ Novo cliente</button><button class="btn" onclick="logout()">Sair</button></div></div>
 <div class="grid">
 <section class="card">
 <h2 id="formTitle" style="margin-top:0">Criar cliente</h2>
 <div class="field"><label>Nome da empresa</label><input id="name" oninput="render()"></div>
 <div class="field"><label>Slug / URL</label><input id="slug" oninput="render()"><div class="muted">Ex.: restaurante-do-joao</div></div>
 <div class="field"><label>Descrição</label><textarea id="bio" oninput="render()">Tecnologia que aproxima</textarea></div>
-<div class="field"><label>Logo (URL da imagem)</label><input id="logo" oninput="render()" placeholder="https://..."></div>
-<div class="field"><label>Banner (URL da imagem)</label><input id="banner" oninput="render()" placeholder="https://..."></div>
+<div class="field"><label>Logo</label><input id="logo" oninput="render()" placeholder="https://..."><input id="logoFile" type="file" accept="image/*" style="margin-top:7px" onchange="uploadImage('logo',this)"><div class="muted">Você pode colar uma URL ou enviar uma imagem.</div></div>
+<div class="field"><label>Banner</label><input id="banner" oninput="render()" placeholder="https://..."><input id="bannerFile" type="file" accept="image/*" style="margin-top:7px" onchange="uploadImage('banner',this)"><div class="muted">Você pode colar uma URL ou enviar uma imagem.</div></div>
 
 <div class="field"><label>Cor do fundo</label><input id="bg" type="color" value="#f5efe4" oninput="render()"></div>
 <div class="field"><label>Segunda cor</label><input id="bg2" type="color" value="#e8dcc6" oninput="render()"></div>
@@ -61,90 +61,361 @@
 <script>
 const SUPABASE_URL=window.VJ_SUPABASE?.url||"";
 const SUPABASE_KEY=window.VJ_SUPABASE?.anonKey||"";
-const db=SUPABASE_URL&&SUPABASE_KEY?supabase.createClient(SUPABASE_URL,SUPABASE_KEY):null;
-const icons={instagram:"https://cdn.simpleicons.org/instagram",whatsapp:"https://cdn.simpleicons.org/whatsapp",google:"https://cdn.simpleicons.org/google",maps:"https://cdn.simpleicons.org/googlemaps",tiktok:"https://cdn.simpleicons.org/tiktok",facebook:"https://cdn.simpleicons.org/facebook",youtube:"https://cdn.simpleicons.org/youtube",link:"https://cdn.simpleicons.org/link"};
+const db=SUPABASE_URL&&SUPABASE_KEY&&window.supabase?supabase.createClient(SUPABASE_URL,SUPABASE_KEY):null;
+
+const icons={
+ instagram:"https://cdn.simpleicons.org/instagram",
+ whatsapp:"https://cdn.simpleicons.org/whatsapp",
+ google:"https://cdn.simpleicons.org/google",
+ maps:"https://cdn.simpleicons.org/googlemaps",
+ tiktok:"https://cdn.simpleicons.org/tiktok",
+ facebook:"https://cdn.simpleicons.org/facebook",
+ youtube:"https://cdn.simpleicons.org/youtube",
+ link:"https://cdn.simpleicons.org/link"
+};
+
 let currentId=null;
 let linksState=[];
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+const normalizeUrl=v=>{const s=String(v||"").trim();if(!s)return "";return /^https?:\/\//i.test(s)?s:"https://"+s};
 
 async function init(){
- if(!db){$("loginStatus").textContent="Supabase não configurado."; $("loginStatus").classList.remove("hidden"); return;}
- const {data:{session},error}=await db.auth.getSession();
- if(error){$("loginStatus").textContent=error.message;$("loginStatus").classList.remove("hidden");return;}
- if(session) showApp();
+ if(!db){showLoginError("Supabase não configurado. Verifique admin/config.js.");return;}
+ const {data,error}=await db.auth.getSession();
+ if(error){showLoginError(error.message);return;}
+ if(data.session) await showApp(data.session);
  else $("login").classList.remove("hidden");
- db.auth.onAuthStateChange((_e,s)=>{
-   if(s) showApp();
-   else {$("app").classList.add("hidden");$("login").classList.remove("hidden");}
+
+ db.auth.onAuthStateChange(async (_event,session)=>{
+   if(session) await showApp(session);
+   else{
+     $("app").classList.add("hidden");
+     $("login").classList.remove("hidden");
+     $("accountEmail").textContent="";
+   }
  });
 }
+
+function showLoginError(text){
+ $("loginStatus").textContent=text;
+ $("loginStatus").classList.remove("hidden");
+}
+
 async function login(){
  $("loginStatus").classList.add("hidden");
- if(!db){$("loginStatus").textContent="Supabase não configurado.";$("loginStatus").classList.remove("hidden");return;}
- const email=$("email").value.trim(), password=$("password").value;
- if(!email||!password){$("loginStatus").textContent="Informe e-mail e senha.";$("loginStatus").classList.remove("hidden");return;}
+ if(!db){showLoginError("Supabase não configurado.");return;}
+ const email=$("email").value.trim();
+ const password=$("password").value;
+ if(!email||!password){showLoginError("Informe e-mail e senha.");return;}
  const {data,error}=await db.auth.signInWithPassword({email,password});
- if(error||!data?.session){
-   $("loginStatus").textContent=error?.message||"Não foi possível entrar.";
-   $("loginStatus").classList.remove("hidden");
+ if(error){showLoginError(error.message);return;}
+ if(!data?.session){showLoginError("O Supabase não retornou uma sessão.");return;}
+ await showApp(data.session);
+}
+
+async function logout(){
+ if(db) await db.auth.signOut();
+}
+
+async function showApp(session){
+ $("login").classList.add("hidden");
+ $("app").classList.remove("hidden");
+ $("accountEmail").textContent=session?.user?.email||"";
+ if(!currentId) newClient();
+ await loadClients();
+}
+
+function newClient(){
+ currentId=null;
+ $("formTitle").textContent="Criar cliente";
+ $("name").value="";
+ $("slug").value="";
+ $("bio").value="Tecnologia que aproxima";
+ $("logo").value="";
+ $("banner").value="";
+ if($("logoFile"))$("logoFile").value="";
+ if($("bannerFile"))$("bannerFile").value="";
+ $("bg").value="#f5efe4";
+ $("bg2").value="#e8dcc6";
+ $("text").value="#171717";
+ $("button").value="#151515";
+ $("buttonText").value="#ffffff";
+ $("accent").value="#d8b45d";
+ $("bgMode").value="solid";
+ $("gradientDir").value="135deg";
+ $("buttonStyle").value="solid";
+ linksState=[
+  {label:"Instagram",url:"",icon:"instagram"},
+  {label:"WhatsApp",url:"",icon:"whatsapp"},
+  {label:"Como chegar",url:"",icon:"maps"}
+ ];
+ render();
+ setStatus("");
+}
+
+function addLink(icon){
+ linksState.push({
+  label:icon==="maps"?"Como chegar":icon==="whatsapp"?"WhatsApp":icon==="instagram"?"Instagram":icon==="google"?"Google":"Novo link",
+  url:"",
+  icon
+ });
+ render();
+}
+
+function removeLink(i){
+ linksState.splice(i,1);
+ render();
+}
+
+function updateLink(i,k,v){
+ if(!linksState[i])return;
+ linksState[i][k]=v;
+ render();
+}
+
+function theme(){
+ return {
+  bg:$("bg").value,
+  bg2:$("bg2").value,
+  text:$("text").value,
+  button:$("button").value,
+  buttonText:$("buttonText").value,
+  accent:$("accent").value,
+  bgMode:$("bgMode").value,
+  gradientDir:$("gradientDir").value,
+  buttonStyle:$("buttonStyle").value
+ };
+}
+
+function slugify(v){
+ return String(v||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+  .toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+}
+
+function render(){
+ const c={
+  name:$("name").value,
+  bio:$("bio").value,
+  logo:$("logo").value,
+  banner:$("banner").value,
+  ...theme(),
+  links:linksState
+ };
+ const bg=c.bgMode==="gradient"
+  ?`linear-gradient(${c.gradientDir},${c.bg},${c.bg2})`
+  :c.bg;
+ const btn=c.buttonStyle==="gradient"
+  ?`linear-gradient(135deg,${c.button},${c.accent})`
+  :c.buttonStyle==="outline"?"transparent":c.button;
+ const border=c.buttonStyle==="outline"
+  ?`2px solid ${c.accent}`
+  :"1px solid transparent";
+
+ $("links").innerHTML=linksState.map((x,i)=>`
+  <div class="linkrow">
+   <select onchange="updateLink(${i},'icon',this.value)">
+    ${Object.keys(icons).map(k=>`<option value="${k}" ${x.icon===k?"selected":""}>${k}</option>`).join("")}
+   </select>
+   <input value="${esc(x.label)}" placeholder="Nome" oninput="updateLink(${i},'label',this.value)">
+   <input class="wide" value="${esc(x.url)}" placeholder="https://..." oninput="updateLink(${i},'url',this.value)">
+   <button class="btn danger" title="Apagar este link" aria-label="Apagar este link" onclick="removeLink(${i})">🗑</button>
+  </div>`).join("");
+
+ $("preview").style.background=bg;
+ $("preview").style.color=c.text;
+ $("preview").innerHTML=`
+  ${c.banner?`<div class="banner" style="background-image:url('${esc(c.banner)}')"></div>`:`<div class="banner"></div>`}
+  ${c.logo?`<img class="logo" src="${esc(c.logo)}">`:""}
+  <div class="name">${esc(c.name||"Nome da empresa")}</div>
+  <div class="bio" style="opacity:.65">${esc(c.bio)}</div>
+  ${linksState.map(x=>`<a class="plink" style="background:${btn};border:${border};color:${c.buttonText}" href="#" onclick="event.preventDefault()"><img src="${icons[x.icon]||icons.link}">${esc(x.label||"Link")}</a>`).join("")}
+  <div style="text-align:center;font-size:9px;letter-spacing:.12em;opacity:.5;margin-top:20px">TECNOLOGIA QUE APROXIMA</div>`;
+}
+
+function payload(){
+ const slug=slugify($("slug").value||$("name").value);
+ $("slug").value=slug;
+ return {
+  slug,
+  name:$("name").value.trim(),
+  bio:$("bio").value.trim(),
+  logo_url:$("logo").value.trim()||null,
+  banner_url:$("banner").value.trim()||null,
+  theme:theme(),
+  published:true
+ };
+}
+
+async function saveClient(){
+ if(!db){setStatus("Supabase não configurado.");return;}
+ const p=payload();
+ if(!p.name||!p.slug){setStatus("Informe nome e slug.");return;}
+
+ setStatus("Salvando cliente...");
+ let res=currentId
+  ?await db.from("clients").update({...p,updated_at:new Date().toISOString()}).eq("id",currentId).select().single()
+  :await db.from("clients").insert(p).select().single();
+
+ if(res.error){
+  setStatus("Erro ao salvar cliente: "+res.error.message);
+  return;
+ }
+
+ const clientId=res.data.id;
+ currentId=clientId;
+
+ const del=await db.from("client_links").delete().eq("client_id",clientId);
+ if(del.error){
+  setStatus("Cliente salvo, mas não consegui atualizar os links: "+del.error.message);
+  await loadClients();
+  return;
+ }
+
+ const rows=linksState.filter(x=>String(x.url||"").trim()).map((x,i)=>({
+  client_id:clientId,
+  position:i,
+  label:String(x.label||"Link").trim()||"Link",
+  url:normalizeUrl(x.url),
+  icon_key:x.icon||"link",
+  icon_url:x.icon_url||null,
+  enabled:true
+ }));
+
+ if(rows.length){
+  const lr=await db.from("client_links").insert(rows);
+  if(lr.error){
+   setStatus("Cliente salvo, mas houve erro nos links: "+lr.error.message);
+   await loadClients();
+   return;
+  }
+ }
+
+ setStatus("✓ Cliente salvo. URL: "+publicURL(p.slug));
+ await loadClients();
+}
+
+async function loadClients(){
+ if(!db)return;
+ $("clients").textContent="Carregando...";
+ const {data,error}=await db.from("clients")
+  .select("id,slug,name,published,updated_at")
+  .order("created_at",{ascending:false});
+
+ if(error){
+  $("clients").textContent="Erro ao carregar: "+error.message;
+  return;
+ }
+ if(!data?.length){
+  $("clients").innerHTML="Nenhum cliente cadastrado.";
+  return;
+ }
+
+ $("clients").innerHTML=data.map(c=>`
+  <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;border-top:1px solid #252525;padding:12px 0">
+   <div>
+    <b>${esc(c.name)}</b>
+    <div class="muted">${esc(publicURL(c.slug))} · ${c.published?"publicado":"rascunho"}</div>
+   </div>
+   <div class="row">
+    <button class="btn" onclick="editClient('${c.id}')">Editar</button>
+    <button class="btn" onclick="window.open(publicURL('${encodeURIComponent(c.slug)}'),'_blank')">Abrir</button>
+    <button class="btn" onclick="copyClientURL('${encodeURIComponent(c.slug)}')">Copiar URL</button>
+    <button class="btn danger" onclick="deleteClient('${c.id}')">Excluir</button>
+   </div>
+  </div>`).join("");
+}
+
+async function editClient(id){
+ if(!db)return;
+ const r=await db.from("clients").select("*").eq("id",id).single();
+ if(r.error){setStatus("Erro ao abrir cliente: "+r.error.message);return;}
+ const c=r.data;
+ currentId=c.id;
+ $("formTitle").textContent="Editar cliente";
+ $("name").value=c.name||"";
+ $("slug").value=c.slug||"";
+ $("bio").value=c.bio||"";
+ $("logo").value=c.logo_url||"";
+ $("banner").value=c.banner_url||"";
+ const t=c.theme||{};
+ for(const k of ["bg","bg2","text","button","buttonText","accent","bgMode","gradientDir","buttonStyle"])
+  if(t[k]!=null)$(k).value=t[k];
+
+ const lr=await db.from("client_links")
+  .select("*").eq("client_id",id).order("position",{ascending:true});
+ if(lr.error){setStatus("Erro ao carregar links: "+lr.error.message);return;}
+ linksState=(lr.data||[]).map(x=>({
+  label:x.label,url:x.url,icon:x.icon_key||"link",icon_url:x.icon_url||""
+ }));
+ render();
+ scrollTo({top:0,behavior:"smooth"});
+ setStatus("");
+}
+
+async function deleteClient(id){
+ if(!db)return;
+ if(!confirm("Excluir este cliente e todos os links?"))return;
+ setStatus("Excluindo...");
+ const r=await db.from("clients").delete().eq("id",id);
+ if(r.error){setStatus("Erro ao excluir: "+r.error.message);return;}
+ newClient();
+ await loadClients();
+ setStatus("✓ Cliente excluído.");
+}
+
+function publicURL(slug){
+ return new URL("../client/?slug="+encodeURIComponent(slug),location.href).href;
+}
+
+function openPublic(){
+ const s=slugify($("slug").value||$("name").value);
+ if(!s){setStatus("Informe o nome do cliente.");return;}
+ window.open(publicURL(s),"_blank");
+}
+
+async function copyClientURL(slug){
+ const url=publicURL(decodeURIComponent(slug));
+ try{
+  await navigator.clipboard.writeText(url);
+  setStatus("✓ URL copiada.");
+ }catch(e){
+  setStatus("URL: "+url);
  }
 }
-async function logout(){await db.auth.signOut()}
-async function showApp(){$("login").classList.add("hidden");$("app").classList.remove("hidden");newClient();loadClients()}
-function newClient(){
- currentId=null; $("formTitle").textContent="Criar cliente";
- $("name").value=""; $("slug").value=""; $("bio").value="Tecnologia que aproxima"; $("logo").value=""; $("banner").value="";
- $("bg").value="#f5efe4";$("bg2").value="#e8dcc6";$("text").value="#171717";$("button").value="#151515";$("buttonText").value="#ffffff";$("accent").value="#d8b45d";
- $("bgMode").value="solid";$("gradientDir").value="135deg";$("buttonStyle").value="solid";linksState=[
- {label:"Instagram",url:"",icon:"instagram"},{label:"WhatsApp",url:"",icon:"whatsapp"},{label:"Como chegar",url:"",icon:"maps"}
- ];render();setStatus("");
+
+async function copyURL(){
+ const s=slugify($("slug").value||$("name").value);
+ if(!s){setStatus("Informe o nome do cliente.");return;}
+ await copyClientURL(encodeURIComponent(s));
 }
-function addLink(icon){linksState.push({label:icon==="maps"?"Como chegar":icon==="whatsapp"?"WhatsApp":icon==="instagram"?"Instagram":"Novo link",url:"",icon});render()}
-function removeLink(i){linksState.splice(i,1);render()}
-function updateLink(i,k,v){linksState[i][k]=v;render()}
-function theme(){
- return {bg:$("bg").value,bg2:$("bg2").value,text:$("text").value,button:$("button").value,buttonText:$("buttonText").value,accent:$("accent").value,bgMode:$("bgMode").value,gradientDir:$("gradientDir").value,buttonStyle:$("buttonStyle").value};
+
+async function uploadImage(kind,input){
+ if(!db||!input.files?.[0])return;
+ const file=input.files[0];
+ if(!file.type.startsWith("image/")){setStatus("Selecione uma imagem.");input.value="";return;}
+ if(file.size>5*1024*1024){setStatus("A imagem deve ter no máximo 5 MB.");input.value="";return;}
+ setStatus("Enviando imagem...");
+ const ext=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"")||"jpg";
+ const path=`${crypto.randomUUID()}.${ext}`;
+ const up=await db.storage.from("client-assets").upload(path,file,{upsert:false,contentType:file.type});
+ if(up.error){
+  setStatus("Erro no upload: "+up.error.message);
+  input.value="";
+  return;
+ }
+ const pub=db.storage.from("client-assets").getPublicUrl(path);
+ $(kind).value=pub.data.publicUrl;
+ render();
+ setStatus("✓ Imagem enviada.");
+ input.value="";
 }
-function slugify(v){return v.normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"")}
-function render(){
- const c={name:$("name").value,bio:$("bio").value,logo:$("logo").value,banner:$("banner").value,...theme(),links:linksState};
- const bg=c.bgMode==="gradient"?`linear-gradient(${c.gradientDir},${c.bg},${c.bg2})`:c.bg;
- const btn=c.buttonStyle==="gradient"?`linear-gradient(135deg,${c.button},${c.accent})`:c.buttonStyle==="outline"?"transparent":c.button;
- const border=c.buttonStyle==="outline"?`2px solid ${c.accent}`:"1px solid transparent";
- $("links").innerHTML=linksState.map((x,i)=>`<div class="linkrow"><select onchange="updateLink(${i},'icon',this.value)">${Object.keys(icons).map(k=>`<option value="${k}" ${x.icon===k?"selected":""}>${k}</option>`).join("")}</select><input value="${esc(x.label)}" placeholder="Nome" oninput="updateLink(${i},'label',this.value)"><input class="wide" value="${esc(x.url)}" placeholder="https://..." oninput="updateLink(${i},'url',this.value)"><button class="btn danger" onclick="removeLink(${i})">×</button></div>`).join("");
- $("preview").style.background=bg;$("preview").style.color=c.text;
- $("preview").innerHTML=`${c.banner?`<div class="banner" style="background-image:url('${esc(c.banner)}')"></div>`:`<div class="banner"></div>`}${c.logo?`<img class="logo" src="${esc(c.logo)}">`:""}<div class="name">${esc(c.name||"Nome da empresa")}</div><div class="bio" style="opacity:.65">${esc(c.bio)}</div>${linksState.map(x=>`<a class="plink" style="background:${btn};border:${border};color:${c.buttonText}" href="#" onclick="event.preventDefault()"><img src="${icons[x.icon]||icons.link}">${esc(x.label||"Link")}</a>`).join("")}<div style="text-align:center;font-size:9px;letter-spacing:.12em;opacity:.5;margin-top:20px">TECNOLOGIA QUE APROXIMA</div>`;
+
+function setStatus(t){
+ $("status").textContent=t;
+ $("status").classList.toggle("hidden",!t);
 }
-function payload(){let slug=slugify($("slug").value||$("name").value);$("slug").value=slug;return {slug,name:$("name").value.trim(),bio:$("bio").value,logo_url:$("logo").value.trim()||null,banner_url:$("banner").value.trim()||null,theme:theme(),published:true}}
-async function saveClient(){
- const p=payload();if(!p.name||!p.slug){setStatus("Informe nome e slug.");return}
- let clientId=currentId;
- let res=currentId?await db.from("clients").update({...p,updated_at:new Date().toISOString()}).eq("id",currentId).select().single():await db.from("clients").insert(p).select().single();
- if(res.error){setStatus("Erro ao salvar: "+res.error.message);return}
- clientId=res.data.id;currentId=clientId;
- await db.from("client_links").delete().eq("client_id",clientId);
- const rows=linksState.filter(x=>x.url.trim()).map((x,i)=>({client_id:clientId,position:i,label:x.label.trim()||"Link",url:x.url.trim(),icon_key:x.icon,icon_url:null,enabled:true}));
- if(rows.length){const lr=await db.from("client_links").insert(rows);if(lr.error){setStatus("Cliente salvo, mas houve erro nos links: "+lr.error.message);return}}
- setStatus("✓ Cliente salvo. URL: "+publicURL(p.slug));loadClients();
-}
-async function loadClients(){
- const {data,error}=await db.from("clients").select("id,slug,name,published,updated_at").order("created_at",{ascending:false});
- if(error){$("clients").textContent="Erro ao carregar: "+error.message;return}
- if(!data?.length){$("clients").innerHTML="Nenhum cliente cadastrado.";return}
- $("clients").innerHTML=data.map(c=>`<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;border-top:1px solid #252525;padding:12px 0"><div><b>${esc(c.name)}</b><div class="muted">/cliente/${esc(c.slug)} · ${c.published?"publicado":"rascunho"}</div></div><div class="row"><button class="btn" onclick="editClient('${c.id}')">Editar</button><button class="btn" onclick="window.open(publicURL('${encodeURIComponent(c.slug)}'),'_blank')">Abrir</button><button class="btn" onclick="navigator.clipboard.writeText(publicURL('${encodeURIComponent(c.slug)}'));setStatus('URL copiada.')">Copiar URL</button><button class="btn danger" onclick="deleteClient('${c.id}')">Excluir</button></div></div>`).join("");
-}
-async function editClient(id){
- const c=(await db.from("clients").select("*").eq("id",id).single()).data;if(!c)return;
- currentId=c.id;$("formTitle").textContent="Editar cliente";$("name").value=c.name;$("slug").value=c.slug;$("bio").value=c.bio||"";$("logo").value=c.logo_url||"";$("banner").value=c.banner_url||"";
- const t=c.theme||{};for(const k of ["bg","bg2","text","button","buttonText","accent","bgMode","gradientDir","buttonStyle"])if(t[k]!=null)$(k).value=t[k];
- const lr=await db.from("client_links").select("*").eq("client_id",id).order("position");linksState=(lr.data||[]).map(x=>({label:x.label,url:x.url,icon:x.icon_key||"link",icon_url:x.icon_url||""}));render();scrollTo({top:0,behavior:"smooth"});setStatus("");
-}
-async function deleteClient(id){if(!confirm("Excluir este cliente e todos os links?"))return;const r=await db.from("clients").delete().eq("id",id);if(r.error)setStatus(r.error.message);else{newClient();loadClients()}}
-function publicURL(slug){return new URL("../client/?slug="+encodeURIComponent(slug), location.href).href}
-function openPublic(){const s=slugify($("slug").value||$("name").value);window.open(publicURL(s),"_blank")}
-async function copyURL(){const s=slugify($("slug").value||$("name").value);await navigator.clipboard.writeText(publicURL(s));setStatus("✓ URL copiada.")}
-function setStatus(t){$("status").textContent=t;if(t)$("status").classList.remove("hidden");else $("status").classList.add("hidden")}
+
 init();
 </script>
 </body></html>
