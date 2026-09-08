@@ -1,5 +1,7 @@
-1) Supabase -> SQL Editor -> New query -> cole TODO o schema.sql -> Run.
-2) Authentication -> Users -> seu usuário administrador já deve existir.
-3) No painel, logo e banner agora aceitam arquivo. O upload vai para Storage.
-4) NÃO coloque a service_role key no navegador.
-5) Esta versão permite gerenciamento a usuários autenticados; antes de abrir novos usuários, restrinja as políticas a um admin específico.
+1) Supabase Dashboard -> SQL Editor -> New query -> cole schema.sql -> Run.
+2) Authentication -> Users -> crie seu usuário administrador (email + senha).
+3) O frontend usa a URL e publishable key já configuradas no admin/client.
+4) Depois, no Vercel, publique o repositório.
+5) A página pública nesta primeira versão usa ?slug=... para funcionar sem servidor adicional.
+6) Na etapa de produção podemos trocar para /cliente/slug com rewrite da Vercel.
+7) NÃO use a service_role key no navegador.

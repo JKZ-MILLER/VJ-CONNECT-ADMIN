@@ -27,47 +27,83 @@ create table if not exists public.client_links (
 
 create index if not exists client_links_client_id_idx on public.client_links(client_id);
 
+-- Privileges required by the browser client.
+grant usage on schema public to anon, authenticated;
+grant select on public.clients to anon;
+grant select, insert, update, delete on public.clients to authenticated;
+grant select on public.client_links to anon;
+grant select, insert, update, delete on public.client_links to authenticated;
+
 alter table public.clients enable row level security;
 alter table public.client_links enable row level security;
 
 drop policy if exists "public_can_read_published_clients" on public.clients;
-create policy "public_can_read_published_clients" on public.clients
-for select using (published = true);
+create policy "public_can_read_published_clients"
+on public.clients
+for select
+to anon, authenticated
+using (published = true);
 
 drop policy if exists "authenticated_can_manage_clients" on public.clients;
-create policy "authenticated_can_manage_clients" on public.clients
-for all to authenticated using (true) with check (true);
+create policy "authenticated_can_manage_clients"
+on public.clients
+for all
+to authenticated
+using (true)
+with check (true);
 
 drop policy if exists "public_can_read_enabled_links" on public.client_links;
-create policy "public_can_read_enabled_links" on public.client_links
-for select using (
- enabled = true and exists (
-  select 1 from public.clients c
-  where c.id = client_links.client_id and c.published = true
+create policy "public_can_read_enabled_links"
+on public.client_links
+for select
+to anon, authenticated
+using (
+ enabled = true
+ and exists (
+   select 1 from public.clients c
+   where c.id = client_links.client_id
+     and c.published = true
  )
 );
 
 drop policy if exists "authenticated_can_manage_links" on public.client_links;
-create policy "authenticated_can_manage_links" on public.client_links
-for all to authenticated using (true) with check (true);
+create policy "authenticated_can_manage_links"
+on public.client_links
+for all
+to authenticated
+using (true)
+with check (true);
 
+-- Storage bucket for logos and banners.
 insert into storage.buckets (id, name, public)
 values ('client-assets','client-assets',true)
 on conflict (id) do update set public = true;
 
 drop policy if exists "public_can_view_client_assets" on storage.objects;
-create policy "public_can_view_client_assets" on storage.objects
-for select using (bucket_id = 'client-assets');
+create policy "public_can_view_client_assets"
+on storage.objects
+for select
+to anon, authenticated
+using (bucket_id = 'client-assets');
 
 drop policy if exists "authenticated_can_upload_client_assets" on storage.objects;
-create policy "authenticated_can_upload_client_assets" on storage.objects
-for insert to authenticated with check (bucket_id = 'client-assets');
+create policy "authenticated_can_upload_client_assets"
+on storage.objects
+for insert
+to authenticated
+with check (bucket_id = 'client-assets');
 
 drop policy if exists "authenticated_can_update_client_assets" on storage.objects;
-create policy "authenticated_can_update_client_assets" on storage.objects
-for update to authenticated using (bucket_id = 'client-assets')
+create policy "authenticated_can_update_client_assets"
+on storage.objects
+for update
+to authenticated
+using (bucket_id = 'client-assets')
 with check (bucket_id = 'client-assets');
 
 drop policy if exists "authenticated_can_delete_client_assets" on storage.objects;
-create policy "authenticated_can_delete_client_assets" on storage.objects
-for delete to authenticated using (bucket_id = 'client-assets');
+create policy "authenticated_can_delete_client_assets"
+on storage.objects
+for delete
+to authenticated
+using (bucket_id = 'client-assets');
