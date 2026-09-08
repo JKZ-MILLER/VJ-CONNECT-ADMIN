@@ -1,243 +1,194 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>VJ CONNECT — Painel</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VJ CONNECT — Demo</title>
 <style>
-:root{--gold:#d8b45d}*{box-sizing:border-box}body{margin:0;background:#090909;color:#fff;font-family:Inter,Arial,sans-serif}.wrap{max-width:1300px;margin:auto;padding:24px}.top{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:20px}.brand{font-weight:950;letter-spacing:.08em}.card{background:#111;border:1px solid #28231c;border-radius:18px;padding:18px}.grid{display:grid;grid-template-columns:420px 1fr;gap:18px}.field{margin:0 0 13px}.field label{display:block;font-size:12px;font-weight:800;margin-bottom:6px;opacity:.8}.field input,.field textarea,.field select{width:100%;padding:11px;border-radius:10px;border:1px solid #3a342b;background:#0b0b0b;color:#fff}.field textarea{min-height:72px;resize:vertical}.btn{border:1px solid #3b3328;background:#181512;color:#fff;border-radius:10px;padding:11px 14px;font-weight:800;cursor:pointer}.btn.primary{background:var(--gold);color:#111;border-color:var(--gold)}.btn.danger{border-color:#713b3b;color:#ffb4b4}.row{display:flex;gap:8px;flex-wrap:wrap}.muted{opacity:.55;font-size:12px}.links{display:grid;gap:8px}.linkrow{display:grid;grid-template-columns:100px 1fr 1fr auto;gap:7px;align-items:center}.linkrow input,.linkrow select{padding:9px;background:#0b0b0b;color:#fff;border:1px solid #39342c;border-radius:8px}.previewbox{position:sticky;top:18px}.phone{width:min(430px,100%);height:720px;margin:auto;border:10px solid #1a1a1a;border-radius:34px;overflow:auto;background:#222;box-shadow:0 20px 60px #000}.client{min-height:100%;padding:18px}.banner{height:190px;border-radius:20px;background:#181818 center/cover}.logo{display:block;width:90px;height:90px;border-radius:50%;object-fit:cover;margin:-45px auto 12px;border:4px solid currentColor;background:#222}.name{text-align:center;font-size:25px;font-weight:900}.bio{text-align:center;font-size:13px;line-height:1.5;margin:7px 15px 20px}.plink{display:flex;align-items:center;justify-content:center;gap:10px;text-decoration:none;padding:15px;margin:10px 0;font-weight:800}.plink img{width:21px;height:21px}.status{margin-top:12px;padding:11px;border-radius:10px;background:#171717;font-size:12px}.hidden{display:none!important}@media(max-width:900px){.grid{grid-template-columns:1fr}.previewbox{position:static}.linkrow{grid-template-columns:1fr 1fr}.linkrow .wide{grid-column:1/-1}}
+*{box-sizing:border-box}body{margin:0;background:#070707;color:#eee;font-family:Arial,Helvetica,sans-serif}
+button,input{font:inherit}.top{height:64px;border-bottom:1px solid #29251f;padding:0 22px;display:flex;align-items:center;justify-content:space-between}.brand{font-weight:900;letter-spacing:.16em}.gold{color:#d8b45d}.btn{border:1px solid #3b3328;background:#151515;color:#eee;border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer}.primary{background:#d8b45d;color:#080808;border-color:#d8b45d}
+#login{max-width:430px;margin:80px auto;padding:25px}.muted{color:#999;line-height:1.55;font-size:13px}label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.13em;color:#aaa;margin:14px 0 6px}input{width:100%;background:#111;border:1px solid #383127;color:#fff;padding:11px;border-radius:9px}
+.layout{display:grid;grid-template-columns:410px 1fr;min-height:calc(100vh - 64px)}.panel{padding:22px;border-right:1px solid #29251f;overflow:auto}.section{border-top:1px solid #29251f;margin-top:18px;padding-top:17px}
+.stage{display:grid;place-items:center;padding:25px;background:radial-gradient(circle at 50% 35%,#201a10,#070707 65%)}.phone{width:360px;max-width:90vw;height:690px;border:10px solid #151515;border-radius:42px;overflow:hidden;background:#f5efe4;box-shadow:0 30px 100px #000}.screen{height:100%;overflow:auto;background:#f5efe4;color:#171717;padding:18px}.banner{height:170px;border-radius:19px;background:#171717 center/cover}.logo{display:block;width:84px;height:84px;border-radius:50%;object-fit:cover;margin:-42px auto 12px;border:3px solid #f5efe4;background:#222;position:relative}.name{text-align:center;font-size:23px;font-weight:950}.bio{text-align:center;color:#6b655c;font-size:12px;line-height:1.5;margin:7px 15px 18px}.plink{display:flex;align-items:center;justify-content:center;gap:9px;background:#151515;color:#fff;padding:14px;border-radius:14px;margin:9px 0;font-weight:850;text-decoration:none}.plink img{width:21px;height:21px}.tag{text-align:center;color:#8d877d;font-size:9px;letter-spacing:.12em;margin-top:18px}
+.linkrow{display:grid;grid-template-columns:26px 1fr 1fr 35px;gap:6px;align-items:center;background:#111;border:1px solid #29251f;padding:7px;border-radius:10px;margin-top:7px}.linkrow img{width:20px;height:20px}.small{padding:7px}.danger{background:#291313;color:#ffaaaa}
+.delete-link{width:35px;height:35px;padding:7px;display:grid;place-items:center;cursor:pointer}
+.delete-link svg{width:18px;height:18px;fill:currentColor;pointer-events:none}
+.delete-link:hover{background:#401818;transform:scale(1.04)}
+.hidden{display:none}.status{margin-top:10px;color:#bfae7e;font-size:12px;line-height:1.5}.clientbox{max-width:620px;margin:45px auto;padding:18px}.publicpage{background:#f5efe4;color:#171717;border-radius:28px;padding:18px;min-height:650px}.publicpage .banner{height:190px}.publicpage .logo{width:88px;height:88px}.publicpage .plink{margin:10px 0}
+@media(max-width:850px){.layout{grid-template-columns:1fr}.panel{border-right:0;border-bottom:1px solid #29251f}.stage{min-height:740px}}
 </style>
 </head>
 <body>
-<div id="login" class="wrap" style="max-width:460px;padding-top:80px">
-<div class="card">
-<div class="brand" style="font-size:24px">VJ CONNECT</div>
-<h2>Painel administrativo</h2><p class="muted">Acesso restrito ao administrador.</p>
-<div class="field"><label>E-mail</label><input id="email" type="email" autocomplete="email"></div>
-<div class="field"><label>Senha</label><input id="password" type="password" autocomplete="current-password"></div>
-<button class="btn primary" style="width:100%" onclick="login()">Entrar</button>
-<div id="loginStatus" class="status hidden"></div>
-</div></div>
+<header class="top"><div class="brand">VJ <span class="gold">CONNECT</span></div><button id="logout" class="btn hidden" onclick="logout()">Sair</button></header>
 
-<div id="app" class="wrap hidden">
-<div class="top"><div class="brand">VJ CONNECT <span style="opacity:.4">/ ADMIN</span></div><div class="row"><button class="btn" onclick="newClient()">+ Novo cliente</button><button class="btn" onclick="logout()">Sair</button></div></div>
-<div class="grid">
-<section class="card">
-<h2 id="formTitle" style="margin-top:0">Criar cliente</h2>
-<div class="field"><label>Nome da empresa</label><input id="name" oninput="autoSlug();render()" onblur="autoSlug();render()"></div>
-<div class="field"><label>Slug / URL</label><input id="slug" oninput="this.dataset.auto='false';render()"><div class="muted">Ex.: restaurante-do-joao</div></div>
-<div class="field"><label>Descrição</label><textarea id="bio" oninput="render()">Tecnologia que aproxima</textarea></div>
-<div class="field"><label>Logo</label><input id="logoFile" type="file" accept="image/*" onchange="handleUpload('logo',this.files[0])"><div id="logoFileStatus" class="muted">Selecione uma imagem ou mantenha a logo atual.</div><input id="logo" oninput="render()" placeholder="URL opcional"></div>
-<div class="field"><label>Banner</label><input id="bannerFile" type="file" accept="image/*" onchange="handleUpload('banner',this.files[0])"><div id="bannerFileStatus" class="muted">Selecione uma imagem ou mantenha o banner atual.</div><input id="banner" oninput="render()" placeholder="URL opcional"></div>
-
-<div class="field"><label>Cor do fundo</label><input id="bg" type="color" value="#f5efe4" oninput="render()"></div>
-<div class="field"><label>Segunda cor</label><input id="bg2" type="color" value="#e8dcc6" oninput="render()"></div>
-<div class="field"><label>Cor do texto</label><input id="text" type="color" value="#171717" oninput="render()"></div>
-<div class="field"><label>Cor dos botões</label><input id="button" type="color" value="#151515" oninput="render()"></div>
-<div class="field"><label>Texto dos botões</label><input id="buttonText" type="color" value="#ffffff" oninput="render()"></div>
-<div class="field"><label>Cor de destaque</label><input id="accent" type="color" value="#d8b45d" oninput="render()"></div>
-<div class="field"><label>Fundo</label><select id="bgMode" onchange="render()"><option value="solid">Sólido</option><option value="gradient">Degradê</option></select></div>
-<div class="field"><label>Direção do degradê</label><select id="gradientDir" onchange="render()"><option value="135deg">Diagonal ↘</option><option value="90deg">Vertical ↓</option><option value="0deg">Horizontal →</option><option value="45deg">Diagonal ↗</option></select></div>
-<div class="field"><label>Estilo dos botões</label><select id="buttonStyle" onchange="render()"><option value="solid">Sólido</option><option value="gradient">Degradê</option><option value="outline">Contorno</option></select></div>
-
-<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h3 style="margin-bottom:8px">Links</h3><button class="btn danger" onclick="clearLinks()">Apagar todos</button></div><div id="links" class="links"></div>
-<div class="row" style="margin-top:10px"><button class="btn" onclick="addLink('instagram')">+ Instagram</button><button class="btn" onclick="addLink('whatsapp')">+ WhatsApp</button><button class="btn" onclick="addLink('maps')">+ Google Maps</button><button class="btn" onclick="addLink('google')">+ Google</button><button class="btn" onclick="addLink('link')">+ Link</button></div>
-<div class="row" style="margin-top:16px"><button class="btn primary" onclick="saveClient()">Salvar cliente</button><button class="btn" onclick="openPublic()">Abrir página</button><button class="btn" onclick="copyURL()">Copiar URL</button></div>
-<div id="status" class="status hidden"></div>
+<section id="login">
+<h1>Área administrativa</h1>
+<p class="muted">Esta é uma versão de demonstração. Você não precisa instalar nada: é só abrir este arquivo e testar.</p>
+<label>E-mail</label><input id="email" placeholder="seu@email.com">
+<label>Senha</label><input id="password" type="password" placeholder="qualquer senha">
+<button class="btn primary" style="width:100%;margin-top:16px" onclick="enter()">ENTRAR</button>
 </section>
 
-<section class="card previewbox">
-<h2 style="margin-top:0">Prévia em tempo real</h2>
-<div class="phone"><div id="preview" class="client"></div></div>
-</section>
+<div id="admin" class="layout hidden">
+<aside class="panel">
+<h2 style="margin:0">Criar página</h2>
+<p class="muted">Você controla o template e vê o resultado ao vivo.</p>
+
+<div class="section">
+<label>Nome da empresa</label><input id="name" placeholder="Ex.: Restaurante Silva" oninput="state.name=this.value;render()">
+<label>Descrição</label><input id="bio" placeholder="Uma frase sobre a empresa" oninput="state.bio=this.value;render()">
+<label>Logo</label><input id="logoFile" type="file" accept="image/*" onchange="image(this,'logo')">
+<label>Banner</label><input id="bannerFile" type="file" accept="image/*" onchange="image(this,'banner')">
 </div>
 
-<section class="card" style="margin-top:18px">
-<h2 style="margin-top:0">Clientes</h2>
-<div id="clients" class="muted">Carregando...</div>
-</section>
+<div class="section">
+<div style="display:flex;justify-content:space-between;align-items:center"><b>Links</b><button class="btn" onclick="add()">+ Adicionar</button></div>
+<div id="links"></div>
 </div>
+
+<div class="section">
+<h3 style="margin:0 0 8px">Personalização visual</h3>
+<p class="muted">Controle as cores da página inteira e veja tudo mudar na prévia.</p>
+
+<label>Cor de fundo</label>
+<input id="bgColor" type="color" value="#f5efe4" oninput="state.bg=this.value;render()">
+
+<label>Cor dos textos</label>
+<input id="textColor" type="color" value="#171717" oninput="state.text=this.value;render()">
+
+<label>Cor dos botões</label>
+<input id="buttonColor" type="color" value="#151515" oninput="state.button=this.value;render()">
+
+<label>Cor do texto dos botões</label>
+<input id="buttonTextColor" type="color" value="#ffffff" oninput="state.buttonText=this.value;render()">
+
+<label>Cor do destaque</label>
+<input id="accent" type="color" value="#d8b45d" oninput="state.accent=this.value;render()">
+
+<label>Modo do fundo</label>
+<select id="bgMode" onchange="state.bgMode=this.value;render()" style="width:100%;background:#111;border:1px solid #383127;color:#fff;padding:11px;border-radius:9px">
+<option value="solid">Cor sólida</option>
+<option value="gradient">Degradê</option>
+</select>
+
+<label>Segunda cor do degradê</label>
+<input id="bgColor2" type="color" value="#e8dcc6" oninput="state.bg2=this.value;render()">
+
+<label>Direção do degradê</label>
+<select id="gradientDir" onchange="state.gradientDir=this.value;render()" style="width:100%;background:#111;border:1px solid #383127;color:#fff;padding:11px;border-radius:9px">
+<option value="135deg">Diagonal ↘</option>
+<option value="90deg">Vertical ↓</option>
+<option value="0deg">Horizontal →</option>
+<option value="45deg">Diagonal ↗</option>
+</select>
+
+<label>Estilo dos botões</label>
+<select id="buttonStyle" onchange="state.buttonStyle=this.value;render()" style="width:100%;background:#111;border:1px solid #383127;color:#fff;padding:11px;border-radius:9px">
+<option value="solid">Sólido</option>
+<option value="gradient">Degradê</option>
+<option value="outline">Contorno</option>
+</select>
+</div>
+
+<div class="section">
+<button class="btn primary" style="width:100%" onclick="createPage()">CRIAR PÁGINA DO CLIENTE</button>
+<button class="btn" style="width:100%;margin-top:8px" onclick="showPublic()">VER PÁGINA PÚBLICA</button>
+<div id="status" class="status"></div>
+</div>
+</aside>
+
+<main class="stage"><div class="phone"><div id="preview" class="screen"></div></div></main>
+</div>
+
+<section id="public" class="clientbox hidden">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><b>PÁGINA PÚBLICA DO CLIENTE</b><button class="btn" onclick="backAdmin()">← Voltar ao painel</button></div>
+<div id="publicPage" class="publicpage"></div>
+<p class="muted" style="margin-top:12px">Na produção, esta área será publicada em uma URL própria do cliente, sem link de volta para o site/painel da VJ CONNECT.</p>
+</section>
 
 <script>
-const SUPABASE_URL="https://dciunhrttojsctdlmfvj.supabase.co";
-const SUPABASE_KEY="sb_publishable_pH3oQXt64KP-aN9hCqaFrQ_kZ1L6lM8";
-const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-const icons={instagram:"https://cdn.simpleicons.org/instagram",whatsapp:"https://cdn.simpleicons.org/whatsapp",google:"https://cdn.simpleicons.org/google",maps:"https://cdn.simpleicons.org/googlemaps",tiktok:"https://cdn.simpleicons.org/tiktok",facebook:"https://cdn.simpleicons.org/facebook",youtube:"https://cdn.simpleicons.org/youtube",link:"https://cdn.simpleicons.org/link"};
-let currentId=null;
-let linksState=[];
-let appInitialized=false;
-const DRAFT_KEY="vjconnect_admin_draft_v1";
-const $=id=>document.getElementById(id);
-const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
-
-async function init(){
- const {data:{session}}=await db.auth.getSession();
- if(session) showApp(); else $("login").classList.remove("hidden");
- db.auth.onAuthStateChange((_e,s)=>{if(s)showApp();else{$("app").classList.add("hidden");$("login").classList.remove("hidden")}});
+const icon={
+instagram:"https://cdn.simpleicons.org/instagram",
+whatsapp:"https://cdn.simpleicons.org/whatsapp",
+google:"https://cdn.simpleicons.org/google",
+maps:"https://cdn.simpleicons.org/googlemaps",
+tiktok:"https://cdn.simpleicons.org/tiktok",
+facebook:"https://cdn.simpleicons.org/facebook",
+youtube:"https://cdn.simpleicons.org/youtube",
+link:"https://cdn.simpleicons.org/link"
+};
+let state={
+name:"",bio:"Tecnologia que aproxima",logo:"",banner:"",accent:"#d8b45d",
+bg:"#f5efe4",bg2:"#e8dcc6",text:"#171717",button:"#151515",buttonText:"#ffffff",
+bgMode:"solid",gradientDir:"135deg",buttonStyle:"solid",
+links:[
+{label:"Instagram",url:"https://instagram.com/",icon:"instagram"},
+{label:"WhatsApp",url:"https://wa.me/",icon:"whatsapp"},
+{label:"Google",url:"https://google.com/",icon:"google"},
+{label:"Como chegar",url:"https://maps.google.com/",icon:"maps"}
+]};
+function esc(v){return String(v||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+function enter(){document.getElementById("login").classList.add("hidden");document.getElementById("admin").classList.remove("hidden");document.getElementById("logout").classList.remove("hidden");draw();render()}
+function logout(){location.reload()}
+function image(el,key){const f=el.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{state[key]=r.result;render()};r.readAsDataURL(f)}
+function add(){state.links.push({label:"Novo link",url:"https://",icon:"link"});draw();render()}
+function remove(i){state.links.splice(i,1);draw();render()}
+function draw(){
+document.getElementById("links").innerHTML=state.links.map((x,i)=>`
+<div class="linkrow">
+<img src="${x.icon_url||icon[x.icon]||icon.link}">
+<input value="${esc(x.label)}" oninput="state.links[${i}].label=this.value;render()">
+<input value="${esc(x.url)}" oninput="state.links[${i}].url=this.value;render()">
+<button class="btn small danger delete-link" type="button" onclick="remove(${i})" title="Apagar este link" aria-label="Apagar este link">
+<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6l1 2h4v2H4V5h4l1-2zm-3 6h12l-.8 12H6.8L6 9zm3 2v8h2v-8H9zm4 0v8h2v-8h-2z"/></svg>
+</button>
+</div>`).join("");
 }
-async function login(){
- $("loginStatus").classList.add("hidden");
- const {error}=await db.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});
- if(error){$("loginStatus").textContent=error.message;$("loginStatus").classList.remove("hidden");}
+function content(v=visualCSS()){
+const links=state.links.map(x=>{
+const iconUrl=x.icon_url||icon[x.icon]||icon.link;
+return `<a class="plink" style="border-radius:16px;background:${v.buttonBackground};border:${v.buttonBorder};color:${state.buttonText}" href="${esc(x.url)}" target="_blank" rel="noopener"><img src="${iconUrl}">${esc(x.label)}</a>`;
+}).join("");
+return `<div style="background:${v.background};color:${state.text};min-height:100%;padding:0 0 18px;border-radius:18px">
+${state.banner?`<div class="banner" style="background-image:url('${state.banner}')"></div>`:`<div class="banner"></div>`}
+${state.logo?`<img class="logo" src="${state.logo}">`:""}
+<div class="name">${esc(state.name||"Nome da empresa")}</div>
+<div class="bio" style="color:${state.text};opacity:.65">${esc(state.bio)}</div>${links}<div class="tag" style="color:${state.text};opacity:.55">TECNOLOGIA QUE APROXIMA</div></div>`;
 }
-async function logout(){await db.auth.signOut()}
-async function showApp(){$("login").classList.add("hidden");$("app").classList.remove("hidden");newClient();loadClients()}
-function newClient(){
- currentId=null; $("formTitle").textContent="Criar cliente";
- $("name").value=""; $("slug").value=""; $("bio").value="Tecnologia que aproxima"; $("logo").value=""; $("banner").value=""; $("logoFile").value=""; $("bannerFile").value=""; $("logoFileStatus").textContent="Selecione uma imagem ou mantenha a logo atual."; $("bannerFileStatus").textContent="Selecione uma imagem ou mantenha o banner atual.";
- $("bg").value="#f5efe4";$("bg2").value="#e8dcc6";$("text").value="#171717";$("button").value="#151515";$("buttonText").value="#ffffff";$("accent").value="#d8b45d";
- $("bgMode").value="solid";$("gradientDir").value="135deg";$("buttonStyle").value="solid";linksState=[
- {label:"Instagram",url:"",icon:"instagram"},{label:"WhatsApp",url:"",icon:"whatsapp"},{label:"Como chegar",url:"",icon:"maps"}
- ];render();setStatus("");
+function visualCSS(){
+const background = state.bgMode==="gradient"
+ ? `linear-gradient(${state.gradientDir}, ${state.bg}, ${state.bg2})`
+ : state.bg;
+const buttonBackground = state.buttonStyle==="gradient"
+ ? `linear-gradient(135deg, ${state.button}, ${state.accent})`
+ : state.buttonStyle==="outline"
+ ? "transparent"
+ : state.button;
+const buttonBorder = state.buttonStyle==="outline" ? `2px solid ${state.accent}` : "1px solid transparent";
+return {background,buttonBackground,buttonBorder};
 }
-function addLink(icon){linksState.push({label:icon==="maps"?"Como chegar":icon==="whatsapp"?"WhatsApp":icon==="instagram"?"Instagram":"Novo link",url:"",icon});render()}
-function removeLink(i){
- if(!confirm("Apagar este link?"))return;
- linksState.splice(i,1);
- render();
-}
-function clearLinks(){
- if(!linksState.length)return;
- if(!confirm("Apagar todos os links desta página?"))return;
- linksState=[];
- render();
-}
-function updateLink(i,k,v){linksState[i][k]=v;render()}
-function theme(){
- return {bg:$("bg").value,bg2:$("bg2").value,text:$("text").value,button:$("button").value,buttonText:$("buttonText").value,accent:$("accent").value,bgMode:$("bgMode").value,gradientDir:$("gradientDir").value,buttonStyle:$("buttonStyle").value};
-}
-function slugify(v){return v.normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"")}
-function saveDraft(){
-  try{
-    const draft={
-      currentId,
-      name:$("name").value,
-      slug:$("slug").value,
-      bio:$("bio").value,
-      logo:$("logo").value,
-      banner:$("banner").value,
-      bg:$("bg").value,
-      bg2:$("bg2").value,
-      text:$("text").value,
-      button:$("button").value,
-      buttonText:$("buttonText").value,
-      accent:$("accent").value,
-      bgMode:$("bgMode").value,
-      gradientDir:$("gradientDir").value,
-      buttonStyle:$("buttonStyle").value,
-      links:linksState
-    };
-    localStorage.setItem(DRAFT_KEY,JSON.stringify(draft));
-  }catch(e){}
-}
-
-function loadDraft(){
-  try{
-    const raw=localStorage.getItem(DRAFT_KEY);
-    if(!raw){newClient();return}
-    const d=JSON.parse(raw);
-    currentId=d.currentId||null;
-    $("formTitle").textContent=currentId?"Editar cliente":"Criar cliente";
-    $("name").value=d.name||"";
-    $("slug").value=d.slug||"";
-    $("bio").value=d.bio||"Tecnologia que aproxima";
-    $("logo").value=d.logo||"";
-    $("banner").value=d.banner||"";
-    $("logoFile").value="";
-    $("bannerFile").value="";
-    $("logoFileStatus").textContent=d.logo?"Logo atual carregada.":"Selecione uma imagem ou mantenha a logo atual.";
-    $("bannerFileStatus").textContent=d.banner?"Banner atual carregado.":"Selecione uma imagem ou mantenha o banner atual.";
-    for(const k of ["bg","bg2","text","button","buttonText","accent","bgMode","gradientDir","buttonStyle"]){
-      if(d[k]!=null)$(k).value=d[k];
-    }
-    linksState=Array.isArray(d.links)?d.links:[];
-    render();
-  }catch(e){newClient()}
-}
-
 function render(){
- saveDraft();
- const c={name:$("name").value,bio:$("bio").value,logo:$("logo").value,banner:$("banner").value,...theme(),links:linksState};
- const bg=c.bgMode==="gradient"?`linear-gradient(${c.gradientDir},${c.bg},${c.bg2})`:c.bg;
- const btn=c.buttonStyle==="gradient"?`linear-gradient(135deg,${c.button},${c.accent})`:c.buttonStyle==="outline"?"transparent":c.button;
- const border=c.buttonStyle==="outline"?`2px solid ${c.accent}`:"1px solid transparent";
- $("links").innerHTML=linksState.map((x,i)=>`<div class="linkrow"><select onchange="updateLink(${i},'icon',this.value)">${Object.keys(icons).map(k=>`<option value="${k}" ${x.icon===k?"selected":""}>${k}</option>`).join("")}</select><input value="${esc(x.label)}" placeholder="Nome" oninput="updateLink(${i},'label',this.value)"><input class="wide" value="${esc(x.url)}" placeholder="https://..." oninput="updateLink(${i},'url',this.value)"><button class="btn danger" title="Apagar este link" aria-label="Apagar este link" onclick="removeLink(${i})">Apagar</button></div>`).join("");
- $("preview").style.background=bg;$("preview").style.color=c.text;
- $("preview").innerHTML=`${c.banner?`<div class="banner" style="background-image:url('${esc(c.banner)}')"></div>`:`<div class="banner"></div>`}${c.logo?`<img class="logo" src="${esc(c.logo)}">`:""}<div class="name">${esc(c.name||"Nome da empresa")}</div><div class="bio" style="opacity:.65">${esc(c.bio)}</div>${linksState.map(x=>`<a class="plink" style="background:${btn};border:${border};color:${c.buttonText}" href="#" onclick="event.preventDefault()"><img src="${icons[x.icon]||icons.link}">${esc(x.label||"Link")}</a>`).join("")}<div style="text-align:center;font-size:9px;letter-spacing:.12em;opacity:.5;margin-top:20px">TECNOLOGIA QUE APROXIMA</div>`;
+const v=visualCSS();
+document.getElementById("preview").innerHTML=content(v);
+document.getElementById("publicPage").innerHTML=content(v);
+document.getElementById("preview").style.background=v.background;
+document.getElementById("preview").style.color=state.text;
+document.getElementById("publicPage").style.background=v.background;
+document.getElementById("publicPage").style.color=state.text;
+document.documentElement.style.setProperty("--gold",state.accent);
 }
-async function handleUpload(kind,file){
- if(!file)return;
- const status=$(kind+"FileStatus");
- status.textContent="Enviando "+file.name+"...";
- const ext=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"");
- const safeSlug=slugify($("slug").value||$("name").value)||("cliente-"+Date.now());
- const path=safeSlug+"/"+kind+"-"+Date.now()+"."+ext;
- const {error}=await db.storage.from("client-assets").upload(path,file,{upsert:true,contentType:file.type||"image/jpeg"});
- if(error){status.textContent="Erro no upload: "+error.message;return}
- const {data}=db.storage.from("client-assets").getPublicUrl(path);
- if(kind==="logo")$("logo").value=data.publicUrl; else $("banner").value=data.publicUrl;
- status.textContent="✓ "+file.name+" enviado.";
- render();
+function createPage(){
+if(!state.name.trim()){document.getElementById("status").textContent="Digite o nome da empresa primeiro.";return}
+const slug=state.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+localStorage.setItem("vjconnect_demo",JSON.stringify({...state,slug}));
+document.getElementById("status").innerHTML=`✓ Página criada com sucesso.<br><b>Cliente:</b> ${esc(state.name)}<br><b>URL exclusiva:</b> <span style="color:#fff">/cliente/${esc(slug)}</span><br><span style="opacity:.75">Essa URL não terá menu ou link para o site principal.</span>`;
+showPublic();
 }
-function payload(){
-  const name = $("name").value.trim();
-  let slug = slugify($("slug").value.trim() || name);
-
-  if(!slug && name){
-    slug = "cliente-" + Date.now();
-  }
-
-  $("slug").value = slug;
-
-  return {
-    slug,
-    name,
-    bio: $("bio").value,
-    logo_url: $("logo").value.trim() || null,
-    banner_url: $("banner").value.trim() || null,
-    theme: theme(),
-    published: true
-  };
+function showPublic(){
+document.getElementById("admin").classList.add("hidden");document.getElementById("public").classList.remove("hidden");document.getElementById("logout").classList.add("hidden");render();
 }
-
-function autoSlug(){
-  const name = $("name").value.trim();
-  const slugInput = $("slug");
-
-  if(!slugInput.value.trim() || slugInput.dataset.auto === "true"){
-    slugInput.value = slugify(name);
-    slugInput.dataset.auto = "true";
-  }
-}
-
-async function saveClient(){
- const p=payload();if(!p.name||!p.slug){setStatus("Informe nome e slug.");return}
- let clientId=currentId;
- let res=currentId?await db.from("clients").update({...p,updated_at:new Date().toISOString()}).eq("id",currentId).select().single():await db.from("clients").insert(p).select().single();
- if(res.error){setStatus("Erro ao salvar: "+res.error.message);return}
- clientId=res.data.id;currentId=clientId;
- await db.from("client_links").delete().eq("client_id",clientId);
- const rows=linksState.filter(x=>x.url.trim()).map((x,i)=>({client_id:clientId,position:i,label:x.label.trim()||"Link",url:x.url.trim(),icon_key:x.icon,icon_url:null,enabled:true}));
- if(rows.length){const lr=await db.from("client_links").insert(rows);if(lr.error){setStatus("Cliente salvo, mas houve erro nos links: "+lr.error.message);return}}
- localStorage.removeItem(DRAFT_KEY); setStatus("✓ Cliente salvo. URL: "+publicURL(p.slug));loadClients();
-}
-async function loadClients(){
- const {data,error}=await db.from("clients").select("id,slug,name,published,updated_at").order("created_at",{ascending:false});
- if(error){$("clients").textContent="Erro ao carregar: "+error.message;return}
- if(!data?.length){$("clients").innerHTML="Nenhum cliente cadastrado.";return}
- $("clients").innerHTML=data.map(c=>`<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;border-top:1px solid #252525;padding:12px 0"><div><b>${esc(c.name)}</b><div class="muted">/cliente/${esc(c.slug)} · ${c.published?"publicado":"rascunho"}</div></div><div class="row"><button class="btn" onclick="editClient('${c.id}')">Editar</button><button class="btn" onclick="window.open(publicURL('${encodeURIComponent(c.slug)}'),'_blank')">Abrir</button><button class="btn" onclick="navigator.clipboard.writeText(publicURL('${encodeURIComponent(c.slug)}'));setStatus('URL copiada.')">Copiar URL</button><button class="btn danger" onclick="deleteClient('${c.id}')">Excluir</button></div></div>`).join("");
-}
-async function editClient(id){
- const c=(await db.from("clients").select("*").eq("id",id).single()).data;if(!c)return;
- currentId=c.id;$("formTitle").textContent="Editar cliente";$("name").value=c.name;$("slug").value=c.slug;$("bio").value=c.bio||"";$("logo").value=c.logo_url||"";$("banner").value=c.banner_url||"";$("logoFile").value="";$("bannerFile").value="";$("logoFileStatus").textContent=c.logo_url?"Logo atual carregada.":"Nenhuma logo enviada.";$("bannerFileStatus").textContent=c.banner_url?"Banner atual carregado.":"Nenhum banner enviado.";
- const t=c.theme||{};for(const k of ["bg","bg2","text","button","buttonText","accent","bgMode","gradientDir","buttonStyle"])if(t[k]!=null)$(k).value=t[k];
- const lr=await db.from("client_links").select("*").eq("client_id",id).order("position");linksState=(lr.data||[]).map(x=>({label:x.label,url:x.url,icon:x.icon_key||"link",icon_url:x.icon_url||""}));render();scrollTo({top:0,behavior:"smooth"});setStatus("");
-}
-async function deleteClient(id){if(!confirm("Excluir este cliente e todos os links?"))return;const r=await db.from("clients").delete().eq("id",id);if(r.error)setStatus(r.error.message);else{newClient();loadClients()}}
-function publicURL(slug){return new URL("../client/?slug="+encodeURIComponent(slug), location.href).href}
-function openPublic(){const s=slugify($("slug").value||$("name").value);window.open(publicURL(s),"_blank")}
-async function copyURL(){const s=slugify($("slug").value||$("name").value);await navigator.clipboard.writeText(publicURL(s));setStatus("✓ URL copiada.")}
-function setStatus(t){$("status").textContent=t;if(t)$("status").classList.remove("hidden");else $("status").classList.add("hidden")}
-init();
+function backAdmin(){document.getElementById("public").classList.add("hidden");document.getElementById("admin").classList.remove("hidden");document.getElementById("logout").classList.remove("hidden")}
+draw();render();
 </script>
-</body></html>
+</body>
+</html>
