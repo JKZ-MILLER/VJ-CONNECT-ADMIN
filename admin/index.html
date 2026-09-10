@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>VJ CONNECT — Admin</title>
+<link rel="icon" type="image/png" href="../assets/vj-mark.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./config.js"></script>
 <style>
@@ -26,13 +27,25 @@ button,input,textarea,select{font:inherit}.hidden{display:none!important}.app{mi
 @media(max-width:1100px){.editor{grid-template-columns:1fr}.previewWrap{position:static}.previewWrap .phone{height:720px}.cards{grid-template-columns:1fr 1fr}.app{grid-template-columns:215px 1fr}}
 @media(max-width:760px){.app{display:block}.sidebar{position:fixed;z-index:10;left:-260px;width:250px;transition:.2s}.sidebar.open{left:0}.topbar{padding:0 15px}.content{padding:16px}.grid2,.media{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.hero{align-items:flex-start;flex-direction:column}.linkrow{grid-template-columns:26px 1fr auto}.linkrow .url{grid-column:2/-1}.topTitle{font-size:14px}.menuBtn{display:block!important}.previewWrap .phone{height:calc(100dvh - 150px);min-height:600px}}
 .menuBtn{display:none}
+
+/* VJ CONNECT — identidade visual premium preta + dourada */
+:root{--gold:#e4bb63;--gold2:#a87928;--bg:#050505;--panel:#0d0d0d;--panel2:#131313;--line:#2b2418;--muted:#918a7c;--danger:#e16c6c}
+body{background:radial-gradient(circle at 75% -10%,rgba(228,187,99,.08),transparent 28%),#050505}
+.sidebar{background:linear-gradient(180deg,#090909,#050505);box-shadow:18px 0 60px rgba(0,0,0,.25)}
+.logoBrand{display:flex;align-items:center;gap:10px;padding:0 8px}.logoBrand img{width:34px;height:34px;object-fit:cover;border-radius:10px;filter:drop-shadow(0 0 8px rgba(228,187,99,.35))}.logoBrand span{font-weight:950;letter-spacing:.14em}.logoBrand b,.loginLogo b{color:var(--gold)}
+.topbar{background:rgba(5,5,5,.88);border-bottom-color:#2d261a}.content{max-width:1550px}
+.card,.editorCard,.stat{box-shadow:0 18px 70px rgba(0,0,0,.18)}
+.btn.primary{background:linear-gradient(135deg,#f0cb73,#c5963d);box-shadow:0 8px 30px rgba(228,187,99,.12)}
+.btn.primary:hover{filter:brightness(1.08);transform:translateY(-1px)}
+.mediaBox{overflow:hidden;min-width:0}.mediaBox input[type=file]{max-width:100%;width:100%;font-size:12px}.mediaBox img{max-width:100%;min-width:0}
+.login{background:radial-gradient(circle at 50% 20%,rgba(228,187,99,.13),transparent 34%),#050505}.loginCard{position:relative;overflow:hidden}.loginCard:before{content:"";position:absolute;inset:-50%;background:radial-gradient(circle,rgba(228,187,99,.08),transparent 42%);pointer-events:none}.loginCard>*{position:relative}.loginLogo{display:flex;align-items:center;gap:14px;letter-spacing:.12em}.loginLogo img{width:64px;height:64px;border-radius:16px;object-fit:cover;box-shadow:0 0 35px rgba(228,187,99,.2)}
 </style>
 </head>
 <body>
 
 <div id="login" class="login hidden">
   <div class="loginCard">
-    <div class="loginLogo">VJ <span>CONNECT</span></div>
+    <div class="loginLogo"><img src="../assets/vj-mark.png" alt="VJ CONNECT"><span>VJ <b>CONNECT</b></span></div>
     <h2>Painel administrativo</h2>
     <p class="muted">Acesso exclusivo à área de administração.</p>
     <div class="field"><label>E-mail</label><input id="email" type="email" autocomplete="username"></div>
@@ -44,7 +57,7 @@ button,input,textarea,select{font:inherit}.hidden{display:none!important}.app{mi
 
 <div id="app" class="app hidden">
   <aside id="sidebar" class="sidebar">
-    <div class="logoBrand">VJ <span>CONNECT</span></div>
+    <div class="logoBrand"><img src="../assets/vj-mark.png" alt="VJ CONNECT"><span>VJ <b>CONNECT</b></span></div>
     <div class="tag">TECNOLOGIA QUE APROXIMA</div>
     <nav class="nav">
       <button id="nav-dashboard" onclick="showView('dashboard')">⌂ Dashboard</button>
