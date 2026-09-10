@@ -1,0 +1,429 @@
+};
+
+let state=structuredClone(DEFAULT),currentId=null,clients=[],activeView="dashboard",activeTab="content",device="mobile",draftTimer=null;
+
+const $=id=>document.getElementById(id);
+const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+const clone=o=>JSON.parse(JSON.stringify(o));
+const slugify=v=>String(v||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+const publicURL=slug=>new URL("/c/"+encodeURIComponent(slug),location.origin).href;
+const notify=t=>{const x=$("toast");x.textContent=t;x.classList.remove("hidden");clearTimeout(notify.t);notify.t=setTimeout(()=>x.classList.add("hidden"),3200)};
+
+function applyStateToForm(){
+ $("name").value=state.name||"";
+ $("slug").value=state.slug||"";
+ $("slugAdvanced").value=state.slug||"";
+ $("bio").value=state.bio||"";
+ $("verifyText").value=state.verifyText||"";
+ $("published").value=String(state.published!==false);
+ $("logo").value=state.logo||"";
+ $("banner").value=state.banner||"";
+ $("logoUrl").value=state.logo||"";
+ $("bannerUrl").value=state.banner||"";
+ ["bg","bg2","text","button","buttonText","accent"].forEach(k=>$(k).value=state[k]);
+ $("bgMode").value=state.bgMode||"solid";
+ $("gradientDir").value=state.gradientDir||"135deg";
+ $("buttonStyle").value=state.buttonStyle||"solid";
+ $("buttonRadius").value=state.buttonRadius??15;
+ $("radiusValue").textContent=state.buttonRadius??15;
+ ["bg","bg2","text","button","buttonText","accent"].forEach(k=>$(k+"Hex").textContent=$(k).value);
+ $("publicUrlField").value=state.slug?publicURL(state.slug):"";
+ renderLinks();
+ render();
+}
+
+function readForm(){
+ state.name=$("name").value;
+ state.slug=slugify($("slug").value||$("name").value);
+ state.bio=$("bio").value;
+ state.verifyText=$("verifyText").value;
+ state.published=$("published").value==="true";
+ ["bg","bg2","text","button","buttonText","accent","bgMode","gradientDir","buttonStyle","buttonRadius"].forEach(k=>state[k]=$(k).value);
+ state.buttonRadius=Number(state.buttonRadius||15);
+ state.slug=slugify(state.slug);
+ $("slug").value=state.slug;
+ $("slugAdvanced").value=state.slug;
+ $("publicUrlField").value=state.slug?publicURL(state.slug):"";
+ ["bg","bg2","text","button","buttonText","accent"].forEach(k=>$(k+"Hex").textContent=$(k).value);
+}
+
+function persistDraft(){
+ try{localStorage.setItem("vjconnect_editor_draft",JSON.stringify({state,currentId}));$("statDraft").textContent="Salvo";}catch(e){}
+}
+
+function restoreDraft(){
+ try{
+  const raw=localStorage.getItem("vjconnect_editor_draft");
+  if(!raw)return false;
+  const d=JSON.parse(raw);
+  if(!d?.state)return false;
+  state={...clone(DEFAULT),...d.state,links:Array.isArray(d.state.links)?d.state.links:clone(DEFAULT.links)};
+  currentId=d.currentId||null;
+  return true;
+ }catch(e){return false}
+}
+
+function clearDraft(){
+ localStorage.removeItem("vjconnect_editor_draft");
+ $("statDraft").textContent="—";
+}
+
+function onEdit(){
+ readForm();
+ render();
+ clearTimeout(draftTimer);draftTimer=setTimeout(persistDraft,150);
+}
+
+function newClient(){
+ currentId=null;
+ state=clone(DEFAULT);
+ state.links=clone(DEFAULT.links);
+ applyStateToForm();
+ clearDraft();
+ switchTab("content");
+ notify("Novo cliente pronto.");
+}
+
+function addLink(icon){
+ const labels={maps:"Localização",whatsapp:"WhatsApp",instagram:"Instagram",google:"Google",tiktok:"TikTok",facebook:"Facebook",youtube:"YouTube",link:"Novo link"};
+ state.links.push({label:labels[icon]||"Novo link",url:"",icon,enabled:true});
+ renderLinks();render();persistDraft();
+}
+
+function removeLink(i){
+ if(!state.links[i])return;
+ const label=state.links[i].label||"este link";
+ if(!confirm('Apagar "'+label+'"?'))return;
+ state.links.splice(i,1);
+ renderLinks();render();persistDraft();
+}
+
+function updateLink(i,key,value){
+ if(!state.links[i])return;
+ state.links[i][key]=value;
+ render();
+ persistDraft();
+}
+
+function toggleLink(i){
+ if(!state.links[i])return;
+ state.links[i].enabled=state.links[i].enabled!==false?false:true;
+ render();
+ persistDraft();
+}
+
+function moveLink(i,dir){
+ const j=i+dir;
+ if(j<0||j>=state.links.length)return;
+ [state.links[i],state.links[j]]=[state.links[j],state.links[i]];
+ renderLinks();render();persistDraft();
+}
+
+function renderLinks(){
+ $("links").innerHTML=state.links.map((x,i)=>`
+  <div class="linkrow">
+   <div class="drag">☷</div>
+   <select onchange="updateLink(${i},'icon',this.value)">
+    ${Object.keys(icons).map(k=>`<option value="${k}" ${x.icon===k?"selected":""}>${k}</option>`).join("")}
+   </select>
+   <input value="${esc(x.label)}" placeholder="Texto do botão" oninput="updateLink(${i},'label',this.value)">
+   <input class="url" value="${esc(x.url)}" placeholder="https://..." oninput="updateLink(${i},'url',this.value)">
+   <div class="row">
+    <button class="btn icon" title="Mover para cima" onclick="moveLink(${i},-1)">↑</button>
+    <button class="btn icon" title="Mover para baixo" onclick="moveLink(${i},1)">↓</button>
+    <button class="trash" title="Apagar link" aria-label="Apagar link" onclick="removeLink(${i})">🗑</button>
+   </div>
+  </div>`).join("")||'<div class="empty">Nenhum link. Use os botões abaixo para adicionar.</div>';
+}
+
+function switchTab(tab){
+ activeTab=tab;
+ ["content","style","media","advanced"].forEach(x=>{
+  $("tab-"+x).classList.toggle("active",x===tab);
+  $("pane-"+x).classList.toggle("active",x===tab);
+ });
+}
+
+function showView(view){
+ activeView=view;
+ const titles={dashboard:"Dashboard",clients:"Clientes",editor:currentId?"Editar Cliente":"Criar Cliente"};
+ ["dashboard","clients","editor"].forEach(x=>$("view-"+x).classList.toggle("active",x===view));
+ ["dashboard","clients","editor"].forEach(x=>$("nav-"+x)?.classList.toggle("active",x===view));
+ $("pageTitle").textContent=titles[view]||"VJ CONNECT";
+ $("sidebar").classList.remove("open");
+ if(view==="clients")loadClients();
+ if(view==="dashboard")renderDashboard();
+ if(view==="editor"){applyStateToForm();render()}
+}
+
+function toggleSidebar(){$("sidebar").classList.toggle("open")}
+
+function setDevice(d){
+ device=d;
+ ["mobile","tablet","desktop"].forEach(x=>$("device-"+x).classList.toggle("active",x===d));
+ const screen=$("preview");
+ screen.style.width=d==="mobile"?"390px":d==="tablet"?"520px":"100%";
+ screen.style.maxWidth="100%";
+ screen.style.borderRadius=d==="desktop"?"14px":"32px";
+ render();
+}
+
+function visual(){
+ const bg=state.bgMode==="gradient"
+  ?`linear-gradient(${state.gradientDir},${state.bg},${state.bg2})`
+  :state.bg;
+ const button=state.buttonStyle==="gradient"
+  ?`linear-gradient(135deg,${state.button},${state.accent})`
+  :state.buttonStyle==="outline"?"transparent":state.button;
+ const border=state.buttonStyle==="outline"?`2px solid ${state.accent}`:"1px solid transparent";
+ return {bg,button,border};
+}
+
+function pageContent(){
+ const v=visual();
+ const links=state.links.filter(x=>x.enabled!==false && String(x.url||"").trim());
+ return `<div class="clientPage" style="background:${v.bg};color:${state.text}">
+  ${state.banner?`<div class="banner" style="background-image:url('${esc(state.banner)}')"></div>`:`<div class="banner"></div>`}
+  ${state.logo?`<img class="logoImg" src="${esc(state.logo)}" alt="Logo">`:""}
+  <div class="name">${esc(state.name||"Nome da empresa")}</div>
+  ${state.verifyText?`<div class="verify">✓ ${esc(state.verifyText)}</div>`:""}
+  <div class="bio" style="opacity:.68">${esc(state.bio||"")}</div>
+  ${links.map(x=>`<a class="pLink" style="background:${v.button};border:${v.border};color:${state.buttonText};border-radius:${Number(state.buttonRadius||15)}px" href="${esc(normalizeUrl(x.url))}" target="_blank" rel="noopener noreferrer"><img src="${icons[x.icon]||icons.link}" alt="">${esc(x.label||"Link")}</a>`).join("")}
+  <div class="footer">VJ CONNECT · TECNOLOGIA QUE APROXIMA</div>
+ </div>`;
+}
+
+function normalizeUrl(v){
+ const s=String(v||"").trim();
+ if(!s)return "#";
+ return /^https?:\/\//i.test(s)?s:"https://"+s;
+}
+
+function render(){
+ const v=visual();
+ $("preview").innerHTML=pageContent();
+ $("preview").style.background=v.bg;
+ $("preview").style.color=state.text;
+}
+
+function removeImage(kind){
+ state[kind]="";
+ $(kind).value="";
+ $(kind+"Url").value="";
+ renderMedia();
+ render();
+ persistDraft();
+}
+
+function setImageURL(kind,value){
+ state[kind]=value.trim();
+ renderMedia();
+ render();
+ persistDraft();
+}
+
+function renderMedia(){
+ const lp=$("logoPreview"),bp=$("bannerPreview");
+ lp.src=state.logo||"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='300'%3E%3Crect width='100%25' height='100%25' fill='%23181818'/%3E%3Ctext x='50%25' y='52%25' fill='%23777' font-size='26' text-anchor='middle'%3ELOGO%3C/text%3E%3C/svg%3E";
+ bp.src=state.banner||"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='400'%3E%3Crect width='100%25' height='100%25' fill='%23181818'/%3E%3Ctext x='50%25' y='52%25' fill='%23777' font-size='26' text-anchor='middle'%3EBANNER%3C/text%3E%3C/svg%3E";
+}
+
+async function uploadImage(kind,input){
+ const file=input.files?.[0];
+ if(!file)return;
+ if(!file.type.startsWith("image/")){notify("Escolha uma imagem.");input.value="";return}
+ if(file.size>5*1024*1024){notify("A imagem deve ter no máximo 5 MB.");input.value="";return}
+ if(!db){notify("Supabase não configurado.");return}
+ notify("Enviando imagem...");
+ const ext=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"")||"jpg";
+ const path=`${crypto.randomUUID()}.${ext}`;
+ const up=await db.storage.from("client-assets").upload(path,file,{upsert:false,contentType:file.type});
+ if(up.error){notify("Upload: "+up.error.message);input.value="";return}
+ state[kind]=db.storage.from("client-assets").getPublicUrl(path).data.publicUrl;
+ $(""+kind+"Url").value=state[kind];
+ renderMedia();render();persistDraft();input.value="";
+ notify("Imagem enviada.");
+}
+
+function payload(){
+ readForm();
+ return {
+  slug:state.slug,name:state.name.trim(),bio:state.bio.trim(),
+  logo_url:state.logo.trim()||null,banner_url:state.banner.trim()||null,
+  theme:{
+   bg:state.bg,bg2:state.bg2,text:state.text,button:state.button,buttonText:state.buttonText,
+   accent:state.accent,bgMode:state.bgMode,gradientDir:state.gradientDir,buttonStyle:state.buttonStyle,
+   buttonRadius:state.buttonRadius,verifyText:state.verifyText
+  },
+  published:state.published
+ };
+}
+
+async function saveClient(){
+ if(!db){notify("Supabase não configurado.");return}
+ const p=payload();
+ if(!p.name||!p.slug){notify("Informe nome e slug.");switchTab("content");return}
+ notify("Salvando cliente...");
+ let res=currentId
+  ?await db.from("clients").update({...p,updated_at:new Date().toISOString()}).eq("id",currentId).select().single()
+  :await db.from("clients").insert(p).select().single();
+
+ if(res.error){notify("Erro ao salvar: "+res.error.message);return}
+ currentId=res.data.id;
+
+ const del=await db.from("client_links").delete().eq("client_id",currentId);
+ if(del.error){notify("Cliente salvo, mas os links não foram atualizados: "+del.error.message);return}
+
+ const rows=state.links.filter(x=>String(x.url||"").trim()).map((x,i)=>({
+  client_id:currentId,position:i,label:String(x.label||"Link").trim()||"Link",
+  url:normalizeUrl(x.url),icon_key:x.icon||"link",icon_url:null,enabled:x.enabled!==false
+ }));
+ if(rows.length){
+  const lr=await db.from("client_links").insert(rows);
+  if(lr.error){notify("Cliente salvo, mas houve erro nos links: "+lr.error.message);return}
+ }
+ persistDraft();
+ $("formTitle").textContent="Editar Cliente";
+ clearDraft();
+ notify("✓ Cliente salvo. URL: "+publicURL(p.slug));
+ await loadClients();
+ showView("editor");
+}
+
+async function loadClients(){
+ if(!db)return;
+ $("clientsList").innerHTML='<div class="empty">Carregando clientes...</div>';
+ const {data,error}=await db.from("clients").select("id,slug,name,published,updated_at,created_at").order("created_at",{ascending:false});
+ if(error){$("clientsList").innerHTML='<div class="empty">Erro ao carregar: '+esc(error.message)+'</div>';return}
+ clients=data||[];
+ renderClients();
+ renderDashboard();
+}
+
+function renderClients(){
+ if(!clients.length){$("clientsList").innerHTML='<div class="empty">Nenhum cliente cadastrado.<br><button class="btn primary" style="margin-top:12px" onclick="newClient();showView(\'editor\')">Criar primeiro cliente</button></div>';return}
+ $("clientsList").innerHTML=clients.map(c=>`
+  <div class="clientRow">
+   <div><div class="clientName">${esc(c.name)}</div><div class="clientSlug">${esc(publicURL(c.slug))} · ${c.published?"PUBLICADO":"RASCUNHO"}</div></div>
+   <div class="clientActions">
+    <button class="btn" onclick="editClient('${c.id}')">Editar</button>
+    <button class="btn" onclick="window.open('${publicURL(c.slug)}','_blank','noopener')">Abrir</button>
+    <button class="btn" onclick="copyText('${publicURL(c.slug)}')">Copiar URL</button>
+    <button class="btn danger" onclick="deleteClient('${c.id}')">🗑 Excluir</button>
+   </div>
+  </div>`).join("");
+}
+
+function renderDashboard(){
+ $("statClients").textContent=clients.length;
+ $("statPublished").textContent=clients.filter(x=>x.published).length;
+ if(!$("dashList"))return;
+ if(!clients.length){$("dashList").innerHTML='<div class="empty">Você ainda não criou clientes.</div>';return}
+ $("dashList").innerHTML=clients.slice(0,5).map(c=>`
+  <div class="clientRow">
+   <div><div class="clientName">${esc(c.name)}</div><div class="clientSlug">${esc(c.slug)}</div></div>
+   <div class="clientActions"><button class="btn" onclick="editClient('${c.id}')">Editar</button><button class="btn" onclick="window.open('${publicURL(c.slug)}','_blank')">Abrir</button></div>
+  </div>`).join("");
+}
+
+async function editClient(id){
+ if(!db)return;
+ notify("Carregando cliente...");
+ const r=await db.from("clients").select("*").eq("id",id).single();
+ if(r.error){notify("Erro: "+r.error.message);return}
+ const c=r.data,t=c.theme||{};
+ state={
+  ...clone(DEFAULT),name:c.name||"",slug:c.slug||"",bio:c.bio||"",
+  logo:c.logo_url||"",banner:c.banner_url||"",published:c.published!==false,
+  bg:t.bg||DEFAULT.bg,bg2:t.bg2||DEFAULT.bg2,text:t.text||DEFAULT.text,button:t.button||DEFAULT.button,
+  buttonText:t.buttonText||DEFAULT.buttonText,accent:t.accent||DEFAULT.accent,bgMode:t.bgMode||DEFAULT.bgMode,
+  gradientDir:t.gradientDir||DEFAULT.gradientDir,buttonStyle:t.buttonStyle||DEFAULT.buttonStyle,
+  buttonRadius:Number(t.buttonRadius??15),verifyText:t.verifyText||"",
+  links:[]
+ };
+ const lr=await db.from("client_links").select("*").eq("client_id",id).order("position",{ascending:true});
+ if(lr.error){notify("Erro nos links: "+lr.error.message);return}
+ state.links=(lr.data||[]).map(x=>({label:x.label,url:x.url,icon:x.icon_key||"link",enabled:x.enabled!==false}));
+ currentId=id;
+ localStorage.setItem("vjconnect_editor_draft",JSON.stringify({state,currentId}));
+ showView("editor");switchTab("content");notify("Cliente carregado.");
+}
+
+async function deleteClient(id){
+ if(!db)return;
+ const c=clients.find(x=>x.id===id);
+ if(!confirm(`Excluir "${c?.name||"este cliente"}" e todos os links? Esta ação não pode ser desfeita.`))return;
+ notify("Excluindo...");
+ const r=await db.from("clients").delete().eq("id",id);
+ if(r.error){notify("Erro ao excluir: "+r.error.message);return}
+ if(currentId===id){currentId=null;newClient()}
+ await loadClients();
+ showView("clients");
+ notify("✓ Cliente excluído.");
+}
+
+async function deleteCurrent(){
+ if(!currentId){newClient();return}
+ await deleteClient(currentId);
+}
+
+function openPublic(){
+ readForm();
+ if(!state.slug){notify("Informe o nome/slug primeiro.");return}
+ window.open(publicURL(state.slug),"_blank");
+}
+
+async function copyText(text){
+ try{await navigator.clipboard.writeText(text);notify("✓ URL copiada.");}
+ catch(e){notify(text)}
+}
+
+function copyURL(){
+ readForm();
+ if(!state.slug){notify("Informe o nome/slug primeiro.");return}
+ copyText(publicURL(state.slug));
+}
+
+async function login(){
+ if(!db){$("loginStatus").textContent="Supabase não configurado."; $("loginStatus").classList.remove("hidden");return}
+ const email=$("email").value.trim(),password=$("password").value;
+ if(!email||!password){$("loginStatus").textContent="Informe e-mail e senha."; $("loginStatus").classList.remove("hidden");return}
+ $("loginStatus").textContent="Entrando...";
+ $("loginStatus").classList.remove("hidden");
+ const {data,error}=await db.auth.signInWithPassword({email,password});
+ if(error){$("loginStatus").textContent=error.message;return}
+ if(!data.session){$("loginStatus").textContent="Não foi possível criar a sessão.";return}
+ $("loginStatus").classList.add("hidden");
+}
+
+async function logout(){if(db)await db.auth.signOut()}
+
+async function boot(){
+ if(!db){$("login").classList.remove("hidden");$("loginStatus").textContent="Supabase não configurado.";return}
+ const {data,error}=await db.auth.getSession();
+ if(error){$("login").classList.remove("hidden");$("loginStatus").textContent=error.message;return}
+ if(data.session) await enterApp(data.session); else $("login").classList.remove("hidden");
+ db.auth.onAuthStateChange(async(_event,session)=>{
+  if(session) await enterApp(session);
+  else{$("app").classList.add("hidden");$("login").classList.remove("hidden")}
+ });
+}
+
+async function enterApp(session){
+ $("login").classList.add("hidden");$("app").classList.remove("hidden");
+ const email=session.user?.email||"";
+ $("accountEmail").textContent=email||"Administrador";
+ $("avatar").textContent=(email[0]||"J").toUpperCase();
+ const restored=restoreDraft();
+ if(restored){
+  applyStateToForm();
+  $("statDraft").textContent="Salvo";
+ }else newClient();
+ await loadClients();
+ showView("dashboard");
+}
+
+boot();
+</script>
+</body>
+</html>
