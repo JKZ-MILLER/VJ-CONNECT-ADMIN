@@ -16,7 +16,8 @@ body{min-height:100dvh}.page{width:100%;min-height:100dvh;padding:18px;display:f
 <style>
 :root{--gold:#d9ae4a;--gold2:#f4d27b}
 body{background:radial-gradient(900px 500px at 50% -10%,rgba(217,174,74,.12),transparent 60%),#050505}
-.page{position:relative;overflow:hidden;background:transparent!important}
+/* Background is intentionally inherited from the per-client inline style below. */
+.page{position:relative;overflow:hidden}
 .page:before{content:"";position:fixed;width:55vw;height:55vw;max-width:700px;max-height:700px;left:-28vw;top:-15vw;border:1px solid rgba(217,174,74,.20);border-radius:50%;box-shadow:0 0 80px rgba(217,174,74,.06);pointer-events:none}
 .page:after{content:"";position:fixed;width:42vw;height:42vw;max-width:550px;max-height:550px;right:-22vw;bottom:-18vw;border:1px solid rgba(217,174,74,.18);border-radius:50%;pointer-events:none}
 .inner{position:relative;z-index:1;padding-bottom:24px}
